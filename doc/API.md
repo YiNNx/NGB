@@ -33,7 +33,7 @@ Authorization: Bearer xxxxxxxxxx
 
 
 
-- #### 注册用户
+- #### 注册
 
   `POST /user`
 
@@ -58,7 +58,7 @@ Authorization: Bearer xxxxxxxxxx
   }
   ```
 
-- #### 用户登录
+- #### 登录
 
   `GET /user/token?email=xxxxx&pwd=xxxxx`
 
@@ -71,6 +71,96 @@ Authorization: Bearer xxxxxxxxxx
   }
   ```
 
+- #### 查看用户公开资料
+
+  `GET /user/:uid`
+
+  Response：
+
+  ```
+  {
+  	"username":"xxxxx",
+  	"nickname":"xxxx",
+  	"avatar"
+  	"gender"
+  	"posts":[
+  		{
+  			......
+  		},
+  		......
+  	],
+  	"followers"
+  	"following"
+  	"likes"
+  	"collections"
+  	"boards_join"
+  }
+  ```
+
+
+- #### 查看账户信息*
+
+  `GET /user/account`
+
+  ```
+  {
+  	"email"
+  	"username"
+  	"phone"
+  	"avatar"
+  	"nickname":"xxxx",
+  	"gender"
+  	"intro"
+  }
+  ```
+
+- #### 修改用户信息*
+
+  `PUT /user/account`
+
+  Request:
+
+  ```
+  {
+  	"email"
+  	"username"
+  	"phone"
+  	"avatar"
+  	"nickname":"xxxx",
+  	"gender"
+  	"intro"
+  }
+  ```
+
+  （字段均不能为空，且邮箱须有效格式）
+
+- #### 修改密码*
+
+  `PUT /user/password`
+
+  Request
+
+  ```
+  {
+      "email": "xxxx",
+  
+      "pwd_old": "xxxxxxxx",
+      "pwd_new": "xxxxxxxx"
+  }
+  ```
+
+- #### 关注用户*
+
+  `PUT /user/:uid/follow`
+
+  ```
+  {
+  	"status":true
+  }
+  ```
+
+  
+
 - #### 查看板块
 
   `GET /board/:bid`
@@ -79,6 +169,7 @@ Authorization: Bearer xxxxxxxxxx
 
   ```
   {
+  	"bid":
   	"name":"xxx",
   	"avatar":"xxxx",
   	"intro":"xxxx",
@@ -108,92 +199,89 @@ Authorization: Bearer xxxxxxxxxx
 
   `GET /post/:pid`
 
-  Respond:
-
   ```
   {
-  	"board":"xxx",
-  
-  	"time"
-  	"title":"xxx",//标题
-  	"uid":xx,//发帖人
-  	"time":xx,
-  	"content":"xxxxx",
-  	"comments":[
-  		{
-  			.....
-  		},
-  		....
-  	]
-  	"likes":
-  	"collection"
+       "pid": "帖子ID",
+       "title": "标题"
+       "author": {
+           "uid": "发布者ID",
+           "avatar": "发布者头像URL",
+           "nickname": "发布者昵称",
+       },
+       "time": "发布时间",
+   	"board":{
+   		"bid":"板块ID"，
+   		"avatar":"板块头像"
+   		"name":"板块名称"
+   	}
+       "tags": ["xxxx","xxxxx"],
+       "content": "文本内容",
+       "likes_count": 1,
+       "is_like": true, 
+       "likes":[
+       {
+           "uid": "发布者用户ID",
+           "avatar": "发布者头像URL",
+           "nickname": "发布者昵称",
+       },
+       ...
+       ]
+       "collections_count": 1,
+       "is_collect": true, 
+       "comments_count": 1, 
+       "comments": [
+       {
+       	"cid":"xx",
+       	"parent_cid":"xx",
+       	"from":{
+           	"uid": "xxx",
+           	"avatar": "xxxx",
+           	"nickname": "xxx",
+       	},
+       	"to":{
+           	"uid": "xxx",
+           	"avatar": "xxxx",
+           	"nickname": "xxx",
+       	},
+       	"time":"",
+       	"is_author":false,
+       	"content":"xxxxx"
+       },
+       ...
+       ] // 评论
   }
   ```
 
-- #### 查看所有帖子
+- ### 查看所有帖子
 
   `GET /post/all`
 
-- #### 查看用户信息
+- #### 查看Tag
 
-  `GET /user/:uid`
+  `GET /post?tag=xxxxx`
 
-  Response：
+  Response:
 
   ```
   {
-  	"nickname":"xxxx",
-  	"avatar"
-  	"gender"
-  	"post":[
+  	"posts":[
   		{
-  			......
+  			"pid":xx,//帖子id
+  			"title":"xx",//标题
+  			"uid":xx,//发帖人
+  			"comments":xx//评论数
   		},
-  		......
-  	],
-  	"followers"
-  	"following"
-  	"likes"
-  	"collections"
-  	"boards_join"
+  		{
+  			"pid":xx,
+  			"title":"xx",
+  			"uid":xx,
+  			"comments":xx
+  		},
+  		....
+  	]
   }
   ```
 
-
-- #### 修改用户信息*
-
-  `PUT /user/:uid`
-
-  Request:
-
-  ```
-  {
-  	"email"
-  	"username"
-  	"phone"
-  	"avatar"
-  	"nickname":"xxxx",
-  	"gender"
-  	"intro"
-  }
-  ```
-
-  （字段均不能为空，且邮箱须有效格式）
-
-- #### 修改密码*
-
-  `PUT /user/:uid/pwd`
-
-  Request
-
-  ```
-  {
-      "email": "xxxx",
-  
-      "pwd_old": "xxxxxxxx",
-      "pwd_new": "xxxxxxxx"
-  }
-  ```
 
 - #### 发帖*
 
@@ -226,7 +314,7 @@ Authorization: Bearer xxxxxxxxxx
 
   ```
   {
-  	"collect":true
+  	"statu":true
   }
   ```
 
@@ -238,7 +326,7 @@ Authorization: Bearer xxxxxxxxxx
 
   ```
   {
-  	"like":true
+  	"status":true
   }
   ```
 
@@ -251,24 +339,6 @@ Authorization: Bearer xxxxxxxxxx
   ```
   {
   	"content":"xxxxxx"
-  }
-  ```
-
-  Respond
-
-  ```
-  {
-  	"cid":xxxxx
-  }
-  ```
-
-- #### 关注用户*
-
-  `PUT /user/:uid/follow`
-
-  ```
-  {
-  	"follow":true
   }
   ```
 

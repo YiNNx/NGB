@@ -5,9 +5,10 @@ import "time"
 type Comment struct {
 	tableName struct{}
 
-	Cid       int `pg:",pk"`
-	ParentCid int
-	Post      int `pg:",notnull"`
+	Cid      int `pg:",pk"`
+	Post     int `pg:",notnull"`
+	IsAuthor bool
+	SubCid   []int
 
 	Time    time.Time `pg:"default:now()"`
 	From    int       `pg:",notnull"`

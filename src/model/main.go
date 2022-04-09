@@ -6,6 +6,8 @@ import (
 	"ngb/config"
 )
 
+var db *pg.DB
+
 // Connect database
 func Connect() *pg.DB {
 	db = pg.Connect(&pg.Options{

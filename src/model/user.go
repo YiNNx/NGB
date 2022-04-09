@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/go-pg/pg/v10"
 	"ngb/util"
 	"time"
 )
@@ -31,8 +30,6 @@ type User struct {
 	BoardsJoin  []int
 	BoardsMng   []int
 }
-
-var db *pg.DB
 
 func InsertUser(u *User) error {
 	_, err := db.Model(u).Insert()
