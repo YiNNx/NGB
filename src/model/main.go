@@ -8,6 +8,15 @@ import (
 
 var db *pg.DB
 
+func init() {
+	// Register many to many model so ORM can better recognize m2m relation.
+	// This should be done before dependant models are used.
+	orm.RegisterTable((*Collection)(nil))
+	orm.RegisterTable((*Like)(nil))
+	orm.RegisterTable((*Manage)(nil))
+	orm.RegisterTable((*Join)(nil))
+}
+
 // Connect database
 func Connect() *pg.DB {
 	db = pg.Connect(&pg.Options{
@@ -32,7 +41,8 @@ func Close() {
 // CreateSchema creates database schema for User model
 func CreateSchema() error {
 	models := []interface{}{
-		(*User)(nil), (*Board)(nil), (*Comment)(nil), (*Post)(nil),
+		(*User)(nil), // (*Board)(nil), (*Comment)(nil), (*Post)(nil),
+		//(*FollowShip)(nil), (*Like)(nil), (*Manage)(nil), (*Join)(nil), (*Board)(nil), (*Comment)(nil),
 	}
 	for _, model := range models {
 		err := db.Model(model).CreateTable(&orm.CreateTableOptions{

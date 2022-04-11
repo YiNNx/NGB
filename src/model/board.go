@@ -14,8 +14,8 @@ type Board struct {
 	Time   time.Time `pg:"default:now()"`
 	Intro  string
 
-	//Managers []User `pg:"many2many:manage_ships"`
-	//Members  []User `pg:"many2many:join_ships"`
+	Managers []User `pg:",many2many:manages"`
+	Members  []User `pg:",many2many:joins"`
 	//Posts    []Post `pg:"rel:has-many"`
 }
 

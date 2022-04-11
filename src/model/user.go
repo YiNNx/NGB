@@ -22,14 +22,12 @@ type User struct {
 	Gender   int //0:secret 1:female 2:male 3:third gender
 	Intro    string
 
-	//Followers   []User    `pg:"many2many:follow_ships"`
-	//Following   []User    `pg:"many2many:follow_ships"`
 	//Posts       []Post    `pg:"rel:has-many"`
 	//Comments    []Comment `pg:"rel:has-many"`
-	//Likes []Post `pg:"many2many:likes"`
-	Collections []*Post `pg:"many2many:collections"`
-	//BoardsJoin  []Board   `pg:"many2many:join_ships"`
-	//BoardsMng   []Board   `pg:"many2many:manage_ships"`
+	Likes       []Post  `pg:"many2many:likes"`
+	Collections []Post  `pg:"many2many:collections"`
+	BoardsJoin  []Board `pg:"many2many:joins"`
+	BoardsMng   []Board `pg:"many2many:manages"`
 }
 
 func InsertUser(u *User) error {
@@ -96,7 +94,7 @@ func GetUserByUid(uid int) (*User, error) {
 	return u, nil
 }
 
-func GetUserByUids(uids []int) ([]User, error) {
+func GetUsersByUids(uids []int) ([]User, error) {
 	var users []User
 	err := db.Model(&users).
 		Where("uid in (?)", pg.In(uids)).
