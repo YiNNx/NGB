@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"github.com/go-pg/pg/v10"
+	"time"
+)
 
 type Post struct {
 	tableName struct{}
@@ -14,35 +17,16 @@ type Post struct {
 	Title   string `pg:",notnull"`
 	Content string `pg:",notnull"`
 
-	Comments    []int
-	Likes       []int
-	Collections []int
+	//Comments    []Comment `pg:"rel:has-many"`
+	Likes []User `pg:"many2many:likes"`
+	//Collections []User `pg:"many2many:collections"`
 }
 
-func AddPost(p *Post) error {
+func InsertPost(p *Post) error {
 	_, err := db.Model(p).Insert()
 	if err != nil {
 		return err
 	}
-
-	u := &User{Uid: p.Author}
-	if err := db.Model(u).WherePK().Select(); err != nil {
-		return err
-	}
-	u.Posts = append(u.Posts, p.Pid)
-	if _, err := db.Model(u).Column("posts").WherePK().Update(); err != nil {
-		return err
-	}
-
-	b := &Board{Bid: p.Board}
-	if err := db.Model(b).WherePK().Select(); err != nil {
-		return err
-	}
-	b.Posts = append(b.Posts, p.Pid)
-	if _, err := db.Model(b).Column("posts").WherePK().Update(); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -66,54 +50,24 @@ func GetPostsByTag(tag string) ([]Post, error) {
 	return posts, nil
 }
 
-func AddLike(pid int, uid int) error {
-	p := &Post{Pid: pid}
-	err := db.Model(p).WherePK().Select()
+func GetPostsByPids(pids []int) ([]Post, error) {
+	var posts []Post
+	err := db.Model(&posts).
+		Where("pid in (?)", pg.In(pids)).
+		Select()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	p.Likes = append(p.Likes, uid)
-	_, err = db.Model(p).
-		Column("likes").
-		WherePK().
-		Update()
-	if err != nil {
-		return err
-	}
-
-	u := &User{Uid: uid}
-	if err := db.Model(u).WherePK().Select(); err != nil {
-		return err
-	}
-	u.Likes = append(u.Likes, pid)
-	if _, err := db.Model(u).Column("likes").WherePK().Update(); err != nil {
-		return err
-	}
-	return nil
+	return posts, nil
 }
 
-func AddCollection(pid int, uid int) error {
-	p := &Post{Pid: pid}
-	err := db.Model(p).WherePK().Select()
+func GetPostsByUids(uids []int) ([]Post, error) {
+	var posts []Post
+	err := db.Model(&posts).
+		Where("author in (?)", pg.In(uids)).
+		Select()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	p.Collections = append(p.Collections, uid)
-	_, err = db.Model(p).
-		Column("collections").
-		WherePK().
-		Update()
-	if err != nil {
-		return err
-	}
-
-	u := &User{Uid: uid}
-	if err := db.Model(u).WherePK().Select(); err != nil {
-		return err
-	}
-	u.Collections = append(u.Collections, pid)
-	if _, err := db.Model(u).Column("collections").WherePK().Update(); err != nil {
-		return err
-	}
-	return nil
+	return posts, nil
 }

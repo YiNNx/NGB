@@ -15,7 +15,7 @@ type JwtUserClaims struct {
 
 var Conf = middleware.JWTConfig{
 	Claims:     &JwtUserClaims{},
-	SigningKey: []byte(config.JwtSecret),
+	SigningKey: []byte(config.C.Jwt.Secret),
 }
 
 func GenerateToken(id int, role bool) string {
@@ -31,7 +31,7 @@ func GenerateToken(id int, role bool) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// Generate encoded token and send it as response.
-	t, err := token.SignedString([]byte(config.JwtSecret))
+	t, err := token.SignedString([]byte(config.C.Jwt.Secret))
 	if err != nil {
 		return "error"
 	}

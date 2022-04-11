@@ -2,51 +2,70 @@ package config
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"os"
 )
 
-var JwtSecret = "2333333"
-
-//Postgresql
-const (
-	User     = "postgres"
-	Password = "080502"
-	Dbname   = "ngb"
+var (
+	// C 全局配置文件，在Init调用前为nil
+	C *Config
 )
 
+// Config 配置
 type Config struct {
-	AppId  string
-	Secret string
-	Host   Host
+	App        app        `yaml:"app"`
+	Postgresql postgresql `yaml:"postgresql"`
+	Jwt        jwt        `yaml:"jwt"`
 }
 
-//json中的嵌套对应结构体的嵌套
-type Host struct {
-	Address string
-	Port    int
+type app struct {
+	Addr string `yaml:"addr"`
 }
 
-func read() {
-	config := viper.New()
-	config.AddConfigPath(".")
-	config.SetConfigName("config")
-	config.SetConfigType("json")
-	if err := config.ReadInConfig(); err != nil {
+type postgresql struct {
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Dbname   string `yaml:"dbname"`
+}
+
+type jwt struct {
+	Secret string `yaml:"secret"`
+}
+
+func init() {
+	configFile := "default.yml"
+
+	// 如果有设置 ENV ，则使用ENV中的环境
+	if v, ok := os.LookupEnv("ENV"); ok {
+		configFile = v + ".yml"
+	}
+
+	// 读取配置文件
+	data, err := ioutil.ReadFile(fmt.Sprintf("./env/config/%s", configFile))
+
+	if err != nil {
+		//Logger.Println("Read config error!")
+		//Logger.Panic(err)
 		panic(err)
-	}
-	fmt.Println(config.GetString("appId"))
-	fmt.Println(config.GetString("secret"))
-	fmt.Println(config.GetString("host.address"))
-	fmt.Println(config.GetString("host.port"))
-
-	//直接反序列化为Struct
-	var configjson Config
-	if err := config.Unmarshal(&configjson); err != nil {
-		fmt.Println(err)
+		return
 	}
 
-	fmt.Println(configjson.Host)
-	fmt.Println(configjson.AppId)
-	fmt.Println(configjson.Secret)
+	config := &Config{}
+
+	err = yaml.Unmarshal(data, config)
+
+	if err != nil {
+		//Logger.Println("Unmarshal config error!")
+		//Logger.Panic(err)
+		fmt.Println("Unmarshal config error!")
+		panic(err)
+		return
+	}
+
+	C = config
+
+	//Logger.Println("Config " + configFile + " loaded.")
+	fmt.Println("Config " + configFile + " loaded.")
 
 }

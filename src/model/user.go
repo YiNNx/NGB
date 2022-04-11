@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/go-pg/pg/v10"
 	"ngb/util"
 	"time"
 )
@@ -9,10 +10,10 @@ type User struct {
 	tableName struct{}
 
 	Uid        int       `pg:",pk"`
-	Email      string    `pg:",unique,notnull"`
-	Username   string    `pg:",unique,notnull"`
+	Email      string    //`pg:",unique,notnull"`
+	Username   string    //`pg:",unique,notnull"`
 	Phone      string    `pg:",unique"`
-	PwdHash    string    `pg:",notnull"`
+	PwdHash    string    //`pg:",notnull"`
 	Role       bool      `pg:"default:false"` //0:default 1:super_admin
 	CreateTime time.Time `pg:"default:now()"`
 
@@ -21,18 +22,21 @@ type User struct {
 	Gender   int //0:secret 1:female 2:male 3:third gender
 	Intro    string
 
-	Followers   []int
-	Following   []int
-	Posts       []int
-	Comments    []int
-	Likes       []int
-	Collections []int
-	BoardsJoin  []int
-	BoardsMng   []int
+	//Followers   []User    `pg:"many2many:follow_ships"`
+	//Following   []User    `pg:"many2many:follow_ships"`
+	//Posts       []Post    `pg:"rel:has-many"`
+	//Comments    []Comment `pg:"rel:has-many"`
+	//Likes []Post `pg:"many2many:likes"`
+	Collections []*Post `pg:"many2many:collections"`
+	//BoardsJoin  []Board   `pg:"many2many:join_ships"`
+	//BoardsMng   []Board   `pg:"many2many:manage_ships"`
 }
 
 func InsertUser(u *User) error {
-	_, err := db.Model(u).Insert()
+	tx, err := db.Begin()
+	// Make sure to close transaction if something goes wrong.
+	defer tx.Close()
+	_, err = db.Model(u).Insert()
 	if err != nil {
 		return err
 	}
@@ -92,6 +96,17 @@ func GetUserByUid(uid int) (*User, error) {
 	return u, nil
 }
 
+func GetUserByUids(uids []int) ([]User, error) {
+	var users []User
+	err := db.Model(&users).
+		Where("uid in (?)", pg.In(uids)).
+		Select()
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 // SelectAllUser returns all users' info
 func SelectAllUser() ([]User, error) {
 	var users []User
@@ -115,27 +130,6 @@ func CheckUserId(uid int) error {
 	u := &User{Uid: uid}
 	err := db.Model(u).WherePK().Select()
 	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func FollowUser(follower int, followee int) error {
-	u := &User{Uid: follower}
-	if err := db.Model(u).WherePK().Select(); err != nil {
-		return err
-	}
-	u.Following = append(u.Following, followee)
-	if _, err := db.Model(u).Column("following").WherePK().Update(); err != nil {
-		return err
-	}
-
-	u = &User{Uid: followee}
-	if err := db.Model(u).WherePK().Select(); err != nil {
-		return err
-	}
-	u.Following = append(u.Following, follower)
-	if _, err := db.Model(u).Column("followers").WherePK().Update(); err != nil {
 		return err
 	}
 	return nil

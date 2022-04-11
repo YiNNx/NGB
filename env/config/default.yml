@@ -1,0 +1,10 @@
+app:
+  addr: ":8080"
+
+postgresql:
+  user: "postgres"
+  password: "080502"
+  dbname: "ngb"
+
+jwt:
+  secret: "2333333"
