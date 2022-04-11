@@ -1,15 +1,29 @@
 package model
 
+//点赞
+
 type Like struct {
 	UserUid int
 	PostPid int
+}
+
+func InsertLike(pid int, uid int) error {
+	l := &Like{
+		PostPid: pid,
+		UserUid: uid,
+	}
+	_, err := db.Model(l).Insert()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func GetLikesOfUser(uid int) ([]Post, error) {
 	var user User
 	err := db.Model(&user).Relation("Likes").Where("uid = ?", uid).Select()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	return user.Likes, nil
 }
@@ -23,9 +37,23 @@ func GetLikesOfPost(pid int) ([]User, error) {
 	return post.Likes, nil
 }
 
+//收藏
+
 type Collection struct {
 	UserUid int
 	PostPid int
+}
+
+func InsertCollection(pid int, uid int) error {
+	f := &Collection{
+		PostPid: pid,
+		UserUid: uid,
+	}
+	_, err := db.Model(f).Insert()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func GetCollectionsOfUser(uid int) ([]Post, error) {
@@ -46,18 +74,39 @@ func GetCollectionsOfPost(pid int) ([]User, error) {
 	return post.Collections, nil
 }
 
-type Join struct {
-	UserUid  int
-	BoardBid int
+//加入板块
+
+type JoinShip struct {
+	Uid int
+	Bid int
 }
 
-func GetBoardsOfUser(uid int) ([]Board, error) {
-	var user User
-	err := db.Model(&user).Relation("Join").Where("uid = ?", uid).Select()
+func InsertJoinShip(bid int, uid int) error {
+	f := JoinShip{
+		Bid: bid,
+		Uid: uid,
+	}
+	_, err := db.Model(f).Insert()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetBoardsOfUser(uid int) ([]User, error) {
+	var joins []JoinShip
+	if err := db.Model(&joins).Where("uid = ?", uid).Select(); err != nil {
+		return nil, err
+	}
+	var bids []int
+	for i, _ := range joins {
+		bids = append(bids, joins[i].Bid)
+	}
+	boards, err := GetUsersByUids(bids)
 	if err != nil {
 		return nil, err
 	}
-	return user.BoardsJoin, nil
+	return boards, nil
 }
 
 func GetMembersOfBoard(bid int) ([]User, error) {
@@ -66,12 +115,26 @@ func GetMembersOfBoard(bid int) ([]User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return b.Members, nil
+	return nil, nil
 }
 
-type Manage struct {
-	BoardBid int
-	UserUid  int
+//管理板块
+
+type ManageShip struct {
+	Bid int
+	Uid int
+}
+
+func InsertManageShip(bid int, uid int) error {
+	f := ManageShip{
+		Bid: bid,
+		Uid: uid,
+	}
+	_, err := db.Model(f).Insert()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func GetBoardsMngOfUser(uid int) ([]Board, error) {
@@ -80,7 +143,7 @@ func GetBoardsMngOfUser(uid int) ([]Board, error) {
 	if err != nil {
 		return nil, err
 	}
-	return user.BoardsMng, nil
+	return nil, nil
 }
 
 func GetManagersOfBoard(bid int) ([]User, error) {
@@ -89,44 +152,10 @@ func GetManagersOfBoard(bid int) ([]User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return b.Managers, nil
+	return nil, nil
 }
 
-//func InsertCollection(pid int, uid int) error {
-//	f := &Collection{
-//		Pid: pid,
-//		Uid: uid,
-//	}
-//	_, err := db.Model(f).Insert()
-//	if err != nil {
-//		return err
-//	}
-//	return nil
-//}
-//
-//func InsertLike(pid int, uid int) error {
-//	l := &Like{
-//		Pid: pid,
-//		Uid: uid,
-//	}
-//	_, err := db.Model(l).Insert()
-//	if err != nil {
-//		return err
-//	}
-//	return nil
-//}
-//
-//func InsertManageShip(bid int, uid int) error {
-//	f := ManageShip{
-//		Bid: bid,
-//		Uid: uid,
-//	}
-//	_, err := db.Model(f).Insert()
-//	if err != nil {
-//		return err
-//	}
-//	return nil
-//}
+//关注
 
 type FollowShip struct {
 	tableName struct{}
@@ -177,20 +206,3 @@ func GetFollowersOfUser(uid int) ([]User, error) {
 	}
 	return users, nil
 }
-
-//
-//func GetLikesByPid(pid int) ([]Post, error) {
-//	var likes []Like
-//	if err := db.Model(&likes).Where("pid = ?", pid).Select(); err != nil {
-//		return nil, err
-//	}
-//	var uids []int
-//	for i, _ := range likes {
-//		uids = append(uids, likes[i].Uid)
-//	}
-//	posts, err := GetPostsByUids(uids)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return posts, nil
-//}

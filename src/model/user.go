@@ -10,10 +10,10 @@ type User struct {
 	tableName struct{}
 
 	Uid        int       `pg:",pk"`
-	Email      string    //`pg:",unique,notnull"`
-	Username   string    //`pg:",unique,notnull"`
+	Email      string    `pg:",unique,notnull"`
+	Username   string    `pg:",unique,notnull"`
 	Phone      string    `pg:",unique"`
-	PwdHash    string    //`pg:",notnull"`
+	PwdHash    string    `pg:",notnull"`
 	Role       bool      `pg:"default:false"` //0:default 1:super_admin
 	CreateTime time.Time `pg:"default:now()"`
 
@@ -22,12 +22,10 @@ type User struct {
 	Gender   int //0:secret 1:female 2:male 3:third gender
 	Intro    string
 
-	//Posts       []Post    `pg:"rel:has-many"`
+	//Posts []Post `pg:"rel:has-many"`
 	//Comments    []Comment `pg:"rel:has-many"`
-	Likes       []Post  `pg:"many2many:likes"`
-	Collections []Post  `pg:"many2many:collections"`
-	BoardsJoin  []Board `pg:"many2many:joins"`
-	BoardsMng   []Board `pg:"many2many:manages"`
+	Likes       []Post `pg:"many2many:likes"`
+	Collections []Post `pg:"many2many:collections"`
 }
 
 func InsertUser(u *User) error {
@@ -84,7 +82,6 @@ func ChangePwd(pwdHashNew string, uid int) error {
 	return nil
 }
 
-// GetUser returns user info by id.
 func GetUserByUid(uid int) (*User, error) {
 	u := &User{Uid: uid}
 	err := db.Model(u).WherePK().Select()

@@ -13,8 +13,6 @@ func init() {
 	// This should be done before dependant models are used.
 	orm.RegisterTable((*Collection)(nil))
 	orm.RegisterTable((*Like)(nil))
-	orm.RegisterTable((*Manage)(nil))
-	orm.RegisterTable((*Join)(nil))
 }
 
 // Connect database
@@ -41,8 +39,9 @@ func Close() {
 // CreateSchema creates database schema for User model
 func CreateSchema() error {
 	models := []interface{}{
-		(*User)(nil), // (*Board)(nil), (*Comment)(nil), (*Post)(nil),
+		(*Board)(nil), (*User)(nil), (*Post)(nil), (*Comment)(nil),
 		//(*FollowShip)(nil), (*Like)(nil), (*Manage)(nil), (*Join)(nil), (*Board)(nil), (*Comment)(nil),
+		//(*Join)(nil), (*Manage)(nil),
 	}
 	for _, model := range models {
 		err := db.Model(model).CreateTable(&orm.CreateTableOptions{

@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type Comment struct {
 	tableName struct{}
@@ -30,4 +32,15 @@ func GetCommentByCid(cid int) (*Comment, error) {
 		return nil, err
 	}
 	return c, nil
+}
+
+func GetCommentsByPid(pid int) ([]Post, error) {
+	var posts []Post
+	err := db.Model(&posts).
+		Where("pid = ?", pid).
+		Select()
+	if err != nil {
+		return nil, err
+	}
+	return posts, nil
 }

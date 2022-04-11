@@ -14,8 +14,6 @@ type Board struct {
 	Time   time.Time `pg:"default:now()"`
 	Intro  string
 
-	Managers []User `pg:",many2many:manages"`
-	Members  []User `pg:",many2many:joins"`
 	//Posts    []Post `pg:"rel:has-many"`
 }
 
@@ -36,10 +34,10 @@ func GetBoardByBid(bid int) (*Board, error) {
 	return b, nil
 }
 
-func GetBoardByBids(bids []int) ([]Board, error) {
+func GetBoardsByBids(bids []int) ([]Board, error) {
 	var boards []Board
 	err := db.Model(&boards).
-		Where("rid in (?)", pg.In(bids)).
+		Where("bid in (?)", pg.In(bids)).
 		Select()
 	if err != nil {
 		return nil, err

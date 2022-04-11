@@ -8,14 +8,14 @@ import (
 type Post struct {
 	tableName struct{}
 
-	Pid int `pg:",pk"`
-	//Board  int       `pg:",notnull"`
-	Time time.Time `pg:"default:now()"`
-	//Author int       `pg:",notnull"`
-	Tags []string
+	Pid    int       `pg:",pk"`
+	Board  int       `pg:",notnull"`
+	Time   time.Time `pg:"default:now()"`
+	Author int       `pg:",notnull"`
+	Tags   []string
 
-	//Title   string `pg:",notnull"`
-	//Content string `pg:",notnull"`
+	Title   string `pg:",notnull"`
+	Content string `pg:",notnull"`
 
 	//Comments    []Comment `pg:"rel:has-many"`
 	Likes       []User `pg:"many2many:likes"`
@@ -61,10 +61,10 @@ func GetPostsByPids(pids []int) ([]Post, error) {
 	return posts, nil
 }
 
-func GetPostsByUids(uids []int) ([]Post, error) {
+func GetPostsByUid(uid int) ([]Post, error) {
 	var posts []Post
 	err := db.Model(&posts).
-		Where("author in (?)", pg.In(uids)).
+		Where("author = ?", uid).
 		Select()
 	if err != nil {
 		return nil, err
