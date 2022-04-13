@@ -71,3 +71,23 @@ func GetPostsByUid(uid int) ([]Post, error) {
 	}
 	return posts, nil
 }
+
+func GetPostsByBoard(bid int) ([]Post, error) {
+	var posts []Post
+	err := db.Model(&posts).
+		Where("board = ?", bid).
+		Select()
+	if err != nil {
+		return nil, err
+	}
+	return posts, nil
+}
+
+func SelectAllPosts() ([]Post, error) {
+	var posts []Post
+	err := db.Model(&posts).Select()
+	if err != nil {
+		return nil, err
+	}
+	return posts, nil
+}

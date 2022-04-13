@@ -44,3 +44,12 @@ func GetBoardsByBids(bids []int) ([]Board, error) {
 	}
 	return boards, nil
 }
+
+func SelectAllBoards() ([]Board, error) {
+	var boards []Board
+	err := db.Model(&boards).Select()
+	if err != nil {
+		return nil, err
+	}
+	return boards, nil
+}

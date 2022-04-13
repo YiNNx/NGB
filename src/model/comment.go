@@ -7,10 +7,10 @@ import (
 type Comment struct {
 	tableName struct{}
 
-	Cid      int `pg:",pk"`
-	Post     int `pg:",notnull"`
-	IsAuthor bool
-	SubCid   []int
+	Cid       int `pg:",pk"`
+	Post      int `pg:",notnull"`
+	IsAuthor  bool
+	ParentCid int
 
 	Time    time.Time `pg:"default:now()"`
 	From    int       `pg:",notnull"`
@@ -25,6 +25,14 @@ func InsertComment(c *Comment) error {
 	return nil
 }
 
+func GetCommentsCountOfPost(pid int) (int, error) {
+	count, err := db.Model((*Comment)(nil)).Where("post = ?", pid).Count()
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func GetCommentByCid(cid int) (*Comment, error) {
 	c := &Comment{Cid: cid}
 	err := db.Model(c).WherePK().Select()
@@ -34,13 +42,13 @@ func GetCommentByCid(cid int) (*Comment, error) {
 	return c, nil
 }
 
-func GetCommentsByPid(pid int) ([]Post, error) {
-	var posts []Post
-	err := db.Model(&posts).
-		Where("pid = ?", pid).
+func GetCommentsByPid(pid int) ([]Comment, error) {
+	var comments []Comment
+	err := db.Model(&comments).
+		Where("post = ?", pid).
 		Select()
 	if err != nil {
 		return nil, err
 	}
-	return posts, nil
+	return comments, nil
 }

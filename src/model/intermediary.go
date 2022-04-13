@@ -19,6 +19,15 @@ func InsertLike(pid int, uid int) error {
 	return nil
 }
 
+func DeleteLike(postPid int, userUid int) error {
+	like := &Like{PostPid: postPid, UserUid: userUid}
+	_, err := db.Model(like).Column("post_pid", "user_uid").Delete()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func GetLikesOfUser(uid int) ([]Post, error) {
 	var user User
 	err := db.Model(&user).Relation("Likes").Where("uid = ?", uid).Select()
@@ -30,11 +39,19 @@ func GetLikesOfUser(uid int) ([]Post, error) {
 
 func GetLikesOfPost(pid int) ([]User, error) {
 	var post Post
-	err := db.Model(&post).Relation("Likes").Where("pid = ?", pid).Select()
+	err := db.Model(&post).Relation("Likes").Where("post_pid = ?", pid).Select()
 	if err != nil {
 		return nil, err
 	}
 	return post.Likes, nil
+}
+
+func GetLikesCountOfPost(pid int) (int, error) {
+	count, err := db.Model((*Like)(nil)).Where("post_pid = ?", pid).Count()
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }
 
 //收藏
@@ -50,6 +67,15 @@ func InsertCollection(pid int, uid int) error {
 		UserUid: uid,
 	}
 	_, err := db.Model(f).Insert()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteCollection(postPid int, userUid int) error {
+	collection := &Collection{PostPid: postPid, UserUid: userUid}
+	_, err := db.Model(collection).Column("post_pid", "user_uid").Delete()
 	if err != nil {
 		return err
 	}
@@ -93,7 +119,16 @@ func InsertJoinShip(bid int, uid int) error {
 	return nil
 }
 
-func GetBoardsOfUser(uid int) ([]User, error) {
+func DeleteJoinShip(bid int, uid int) error {
+	joinShip := &JoinShip{Bid: bid, Uid: uid}
+	_, err := db.Model(joinShip).Column("bid", "uid").Delete()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetBoardsOfUser(uid int) ([]Board, error) {
 	var joins []JoinShip
 	if err := db.Model(&joins).Where("uid = ?", uid).Select(); err != nil {
 		return nil, err
@@ -102,7 +137,7 @@ func GetBoardsOfUser(uid int) ([]User, error) {
 	for i, _ := range joins {
 		bids = append(bids, joins[i].Bid)
 	}
-	boards, err := GetUsersByUids(bids)
+	boards, err := GetBoardsByBids(bids)
 	if err != nil {
 		return nil, err
 	}
@@ -110,12 +145,19 @@ func GetBoardsOfUser(uid int) ([]User, error) {
 }
 
 func GetMembersOfBoard(bid int) ([]User, error) {
-	var b Board
-	err := db.Model(&b).Relation("Join").Where("bid = ?", bid).Select()
+	var joins []JoinShip
+	if err := db.Model(&joins).Where("bid = ?", bid).Select(); err != nil {
+		return nil, err
+	}
+	var uids []int
+	for i, _ := range joins {
+		uids = append(uids, joins[i].Uid)
+	}
+	users, err := GetUsersByUids(uids)
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+	return users, nil
 }
 
 //管理板块
@@ -169,6 +211,15 @@ func InsertFollowShip(followee int, follower int) error {
 		Follower: follower,
 	}
 	_, err := db.Model(f).Insert()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteFollowShip(followee int, follower int) error {
+	followShip := &FollowShip{Followee: followee, Follower: follower}
+	_, err := db.Model(followShip).Column("follower", "followee").Delete()
 	if err != nil {
 		return err
 	}

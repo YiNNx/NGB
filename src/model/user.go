@@ -55,13 +55,7 @@ func ValidateUser(email string, pwd string) (*User, error) {
 // Update user's info by id
 func UpdateUser(u *User) error {
 	_, err := db.Model(u).
-		Column("email").
-		Column("username").
-		Column("phone").
-		Column("avatar").
-		Column("nickname").
-		Column("gender").
-		Column("intro").
+		Column("email", "username", "phone", "avatar", "nickname", "gender", "intro").
 		Where("uid", u.Uid).
 		Update()
 	if err != nil {

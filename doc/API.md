@@ -159,7 +159,9 @@ Authorization: Bearer xxxxxxxxxx
   }
   ```
 
-  
+  取消关注则status为false
+
+  后面同理
 
 - #### 查看板块
 
@@ -195,6 +197,16 @@ Authorization: Bearer xxxxxxxxxx
 
   `GET /board/all`
 
+- #### 加入板块
+
+  `PUT /board/:bid/join`
+
+  ```
+  {
+  	"status":true
+  }
+  ```
+  
 - #### 查看贴子
 
   `GET /post/:pid`
@@ -238,11 +250,6 @@ Authorization: Bearer xxxxxxxxxx
            	"avatar": "xxxx",
            	"nickname": "xxx",
        	},
-       	"to":{
-           	"uid": "xxx",
-           	"avatar": "xxxx",
-           	"nickname": "xxx",
-       	},
        	"time":"",
        	"is_author":false,
        	"content":"xxxxx"
@@ -251,7 +258,7 @@ Authorization: Bearer xxxxxxxxxx
        ] // 评论
   }
   ```
-
+  
 - ### 查看所有帖子
 
   `GET /post/all`
@@ -342,7 +349,18 @@ Authorization: Bearer xxxxxxxxxx
   }
   ```
 
-  
+- #### 发表子评论*
+
+  `POST /post/:pid/comment/:cid/subcomment`
+
+  Request
+
+  ```
+  {
+  	"to":12,
+  	"content":"xxxxxx"
+  }
+  ```
 
 #### 需要admin权限的操作：
 

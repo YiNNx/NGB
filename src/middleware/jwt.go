@@ -12,7 +12,10 @@ import (
 func VerifyUser(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		idFromToken := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
-		id, _ := strconv.Atoi(c.Param("uid"))
+		id, err := strconv.Atoi(c.Param("uid"))
+		if err != nil {
+			return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+		}
 		if id != idFromToken {
 			err := errors.New("no permission")
 			return util.ErrorResponse(c, http.StatusForbidden, err.Error())

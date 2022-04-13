@@ -1,6 +1,9 @@
 package controller
 
-import "time"
+import (
+	"ngb/model"
+	"time"
+)
 
 //user
 
@@ -21,7 +24,7 @@ type responseUserProfile struct {
 	Avatar      string         `json:"avatar"`
 	Gender      int            `json:"gender"`
 	Posts       []postOutline  `json:"posts"`
-	Followers   []userOutline  `json:"follower"`
+	Followers   []userOutline  `json:"followers"`
 	Following   []userOutline  `json:"following"`
 	Likes       []postOutline  `json:"likes"`
 	Collections []postOutline  `json:"collections"`
@@ -56,71 +59,157 @@ type responseAllUser struct {
 
 type userOutline struct {
 	Uid      int    `json:"uid"`
+	Username string `json:"username"`
 	Avatar   string `json:"avatar"`
-	Nickname string `json:"nickname"`
+}
+
+func NewUerOutline(uid int) (*userOutline, error) {
+	u, err := model.GetUserByUid(uid)
+	if err != nil {
+		return nil, err
+	}
+
+	outline := &userOutline{
+		Uid:      u.Uid,
+		Username: u.Username,
+		Avatar:   u.Avatar,
+	}
+
+	return outline, nil
+}
+
+func NewUerOutlines(u []model.User) []userOutline {
+	var outlines []userOutline
+	for i, _ := range u {
+		outlines = append(outlines, userOutline{
+			Uid:      u[i].Uid,
+			Username: u[i].Username,
+			Avatar:   u[i].Avatar,
+		})
+	}
+	return outlines
 }
 
 type boardOutline struct {
 	Bid    int    `json:"bid"`
-	Avatar string `json:"avatar"`
 	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
 	Intro  string `json:"intro"`
 }
 
+func NewBoardOutline(bid int) (*boardOutline, error) {
+	b, err := model.GetBoardByBid(bid)
+	if err != nil {
+		return nil, err
+	}
+
+	outline := &boardOutline{
+		Bid:    b.Bid,
+		Name:   b.Name,
+		Avatar: b.Avatar,
+		Intro:  b.Intro,
+	}
+
+	return outline, nil
+}
+
+func NewBoardOutlines(b []model.Board) []boardOutline {
+	var outlines []boardOutline
+	for i, _ := range b {
+		outlines = append(outlines, boardOutline{
+			Bid:    b[i].Bid,
+			Avatar: b[i].Avatar,
+			Name:   b[i].Name,
+			Intro:  b[i].Intro,
+		})
+	}
+	return outlines
+}
+
 type postOutline struct {
-	Pid           int          `json:"pid"`
-	Title         string       `json:"title"`
-	Author        string       `json:"author"`
-	Time          time.Time    `json:"time"`
-	Board         boardOutline `json:"board"`
-	LikesCount    int          `json:"likes_count"`
-	CommentsCount int          `json:"comments_count"`
+	Pid        int       `json:"pid"`
+	Title      string    `json:"title"`
+	Author     int       `json:"author"`
+	Time       time.Time `json:"time"`
+	Board      int       `json:"board"`
+	LikesCount int       `json:"likes_count"`
+}
+
+func NewPostOutlines(p []model.Post) ([]postOutline, error) {
+	var outlines []postOutline
+	for i, _ := range p {
+		count, err := model.GetLikesCountOfPost(p[i].Pid)
+		if err != nil {
+			return nil, err
+		}
+		outlines = append(outlines, postOutline{
+			Pid:        p[i].Pid,
+			Title:      p[i].Title,
+			Author:     p[i].Author,
+			Time:       p[i].Time,
+			Board:      p[i].Board,
+			LikesCount: count,
+		})
+	}
+	return outlines, nil
 }
 
 type commentDetail struct {
-	Cid         int             `json:"cid"`
-	From        userOutline     `json:"from"`
-	To          userOutline     `json:"to"`
-	Time        time.Time       `json:"time"`
-	IsAuthor    bool            `json:"is_author"`
-	Content     string          `json:"content"`
-	SubComments []commentDetail `json:"sub_comments"`
+	Cid       int         `json:"cid"`
+	ParentCid int         `json:"parent_cid"`
+	IsAuthor  bool        `json:"is_author"`
+	From      userOutline `json:"from"`
+	To        int         `json:"to"`
+	Time      time.Time   `json:"time"`
+	Content   string      `json:"content"`
+	//SubComments []commentDetail `json:"sub_comments"`
+}
+
+func NewCommentDetails(p []model.Comment) ([]commentDetail, error) {
+	var details []commentDetail
+	for i, _ := range p {
+		user, err := NewUerOutline(p[i].From)
+		if err != nil {
+			return nil, err
+		}
+		details = append(details, commentDetail{
+			Cid:       p[i].Cid,
+			ParentCid: p[i].ParentCid,
+			IsAuthor:  p[i].IsAuthor,
+			From:      *user,
+			To:        p[i].To,
+			Time:      p[i].Time,
+			Content:   p[i].Content,
+		})
+	}
+	return details, nil
 }
 
 type responsePostDetail struct {
-	Pid              int             `json:"uid"`
-	Title            string          `json:"title"`
-	Author           userOutline     `json:"author"`
-	Time             time.Time       `json:"time"`
-	Board            boardOutline    `json:"board"`
-	Tags             []string        `json:"tags"`
-	Content          string          `json:"content"`
-	LikesCount       int             `json:"likes_count"`
-	IsLike           bool            `json:"is_like"`
-	Likes            []userOutline   `json:"likes"`
-	CollectionsCount int             `json:"collections_count"`
-	IsCollect        bool            `json:"is_collect"`
-	CommentsCount    int             `json:"comments_count"`
-	Comments         []commentDetail `json:"comments"`
-}
-
-type responsePosts struct {
-	posts []responsePostDetail `json:"posts"`
+	Pid        int          `json:"uid"`
+	Title      string       `json:"title"`
+	Author     userOutline  `json:"author"`
+	Time       time.Time    `json:"time"`
+	Board      boardOutline `json:"board"`
+	Tags       []string     `json:"tags"`
+	Content    string       `json:"content"`
+	LikesCount int          `json:"likes_count"`
+	//IsLike           bool            `json:"is_like"`
+	//CollectionsCount int             `json:"collections_count"`
+	//IsCollect        bool            `json:"is_collect"`
+	CommentsCount int             `json:"comments_count"`
+	Comments      []commentDetail `json:"comments"`
 }
 
 type receiveNewPost struct {
-	Bid     int    `json:"bid"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
+	Title   string   `json:"title"`
+	Content string   `json:"content"`
+	Tags    []string `json:"tags"`
 }
 
 type responseNewPost struct {
 	Pid  int       `json:"pid"`
 	Time time.Time `json:"time"`
-}
-
-type receiveNewCollection struct {
-	Collect bool `json:"collect"`
 }
 
 type receiveNewStatus struct {
@@ -135,6 +224,11 @@ type responseBoardDetail struct {
 	Posts  []postOutline `json:"posts"`
 }
 
-type responseAllBoards struct {
-	Boards []boardOutline
+type receiveCommentPost struct {
+	Content string `json:"content"`
+}
+
+type receiveSubCommentPost struct {
+	To      int    `json:"to"`
+	Content string `json:"content"`
 }
