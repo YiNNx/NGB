@@ -11,8 +11,7 @@ type Like struct {
 
 func InsertLike(pid int, uid int) error {
 	var li []Like
-	err := db.Model(&li).Where("user_uid = ?", uid).Where("post_pid = ?", pid).Select()
-	if li != nil {
+	if db.Model(&li).Where("user_uid = ?", uid).Where("post_pid = ?", pid).Select(); li != nil {
 		return errors.New("already liked")
 	}
 
@@ -28,7 +27,7 @@ func InsertLike(pid int, uid int) error {
 		UserUid: uid,
 	}
 
-	_, err = db.Model(l).Insert()
+	_, err := db.Model(l).Insert()
 	if err != nil {
 		return err
 	}
@@ -79,8 +78,7 @@ type Collection struct {
 
 func InsertCollection(pid int, uid int) error {
 	var co []Collection
-	err := db.Model(&co).Where("user_uid = ?", uid).Where("post_pid = ?", pid).Select()
-	if co != nil {
+	if db.Model(&co).Where("user_uid = ?", uid).Where("post_pid = ?", pid).Select(); co != nil {
 		return errors.New("already collected")
 	}
 
@@ -94,7 +92,7 @@ func InsertCollection(pid int, uid int) error {
 		PostPid: pid,
 		UserUid: uid,
 	}
-	_, err = db.Model(f).Insert()
+	_, err := db.Model(f).Insert()
 	if err != nil {
 		return err
 	}
@@ -137,8 +135,7 @@ type JoinShip struct {
 
 func InsertJoinShip(bid int, uid int) error {
 	var jo []JoinShip
-	err := db.Model(&jo).Where("uid = ?", uid).Where("uid = ?", uid).Select()
-	if jo != nil {
+	if db.Model(&jo).Where("uid = ?", uid).Where("uid = ?", uid).Select(); jo != nil {
 		return errors.New("already liked")
 	}
 
@@ -152,7 +149,7 @@ func InsertJoinShip(bid int, uid int) error {
 		Bid: bid,
 		Uid: uid,
 	}
-	_, err = db.Model(f).Insert()
+	_, err := db.Model(f).Insert()
 	if err != nil {
 		return err
 	}
@@ -209,8 +206,7 @@ type ManageShip struct {
 
 func InsertManageShip(bid int, uid int) error {
 	var fo []ManageShip
-	err := db.Model(&fo).Where("uid = ?", uid).Where("bid = ?", bid).Select()
-	if fo != nil {
+	if db.Model(&fo).Where("uid = ?", uid).Where("bid = ?", bid).Select(); fo != nil {
 		return errors.New("already managed")
 	}
 
@@ -225,7 +221,7 @@ func InsertManageShip(bid int, uid int) error {
 		Bid: bid,
 		Uid: uid,
 	}
-	_, err = db.Model(f).Insert()
+	_, err := db.Model(f).Insert()
 	if err != nil {
 		return err
 	}
@@ -267,8 +263,7 @@ func InsertFollowShip(followee int, follower int) error {
 	}
 
 	var fo []FollowShip
-	err := db.Model(&fo).Where("followee = ?", followee).Where("follower = ?", follower).Select()
-	if fo != nil {
+	if db.Model(&fo).Where("followee = ?", followee).Where("follower = ?", follower).Select(); fo != nil {
 		return errors.New("already followed")
 	}
 
@@ -277,7 +272,7 @@ func InsertFollowShip(followee int, follower int) error {
 		Follower: follower,
 	}
 
-	_, err = db.Model(f).Insert()
+	_, err := db.Model(f).Insert()
 	if err != nil {
 		return err
 	}

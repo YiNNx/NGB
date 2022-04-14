@@ -101,25 +101,21 @@
           {
               "bid": 1,
               "name": "综合版",
-              "avatar": "",
               "intro": "综合板块"
           },
           {
               "bid": 2,
               "name": "游戏版",
-              "avatar": "",
               "intro": "游戏交流"
           },
           {
               "bid": 3,
               "name": "版务",
-              "avatar": "",
               "intro": "论坛管理板块"
           },
           {
               "bid": 4,
               "name": "技术版",
-              "avatar": "",
               "intro": "技术交流"
           }
       ]
@@ -136,13 +132,11 @@
       "author": {
           "uid": 9,
           "username": "meeseeeks",
-          "avatar": ""
       },
       "time": "2022-04-14T15:46:34.518722+08:00",
       "board": {
           "bid": 2,
           "name": "游戏版",
-          "avatar": "",
           "intro": "游戏交流"
       },
       "tags": [
@@ -159,7 +153,6 @@
               "from": {
                   "uid": 1,
                   "username": "xxxxx",
-                  "avatar": ""
               },
               "time": "2022-04-14T15:51:05.970339+08:00",
               "content": "好！"
@@ -278,7 +271,6 @@
           {
               "uid": 9,
               "username": "meeseeeks",
-              "avatar": ""
           }
       ],
       "likes": [
@@ -327,7 +319,6 @@
       "email": "2333@moe.com",
       "username": "233333",
       "phone": "1582333",
-      "avatar": "",
       "nickname": "moe",
       "gender": 0,
       "intro": "a boring person"
@@ -345,7 +336,6 @@
       "email": "2333@moe.com",
       "username": "233333",
       "phone": "1582333",
-      "avatar": "",
       "nickname": "moe",
       "gender": 0,
       "intro": "a boring person"
