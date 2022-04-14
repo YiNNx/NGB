@@ -40,6 +40,7 @@ func DeleteLike(postPid int, userUid int) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

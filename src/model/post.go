@@ -17,7 +17,6 @@ type Post struct {
 	Title   string `pg:",notnull"`
 	Content string `pg:",notnull"`
 
-	//Comments    []Comment `pg:"rel:has-many"`
 	Likes       []User `pg:"many2many:likes"`
 	Collections []User `pg:"many2many:collections"`
 }

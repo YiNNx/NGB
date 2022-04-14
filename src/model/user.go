@@ -22,17 +22,12 @@ type User struct {
 	Gender   int //0:secret 1:female 2:male 3:third gender
 	Intro    string
 
-	//Posts []Post `pg:"rel:has-many"`
-	//Comments    []Comment `pg:"rel:has-many"`
 	Likes       []Post `pg:"many2many:likes"`
 	Collections []Post `pg:"many2many:collections"`
 }
 
 func InsertUser(u *User) error {
-	tx, err := db.Begin()
-	// Make sure to close transaction if something goes wrong.
-	defer tx.Close()
-	_, err = db.Model(u).Insert()
+	_, err := db.Model(u).Insert()
 	if err != nil {
 		return err
 	}
