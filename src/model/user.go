@@ -56,7 +56,7 @@ func ValidateUser(email string, pwd string) (*User, error) {
 func UpdateUser(u *User) error {
 	_, err := db.Model(u).
 		Column("email", "username", "phone", "avatar", "nickname", "gender", "intro").
-		Where("uid", u.Uid).
+		Where("uid = ?", u.Uid).
 		Update()
 	if err != nil {
 		return err
@@ -86,14 +86,18 @@ func GetUserByUid(uid int) (*User, error) {
 }
 
 func GetUsersByUids(uids []int) ([]User, error) {
-	var users []User
-	err := db.Model(&users).
-		Where("uid in (?)", pg.In(uids)).
-		Select()
-	if err != nil {
-		return nil, err
+	if uids != nil {
+		var users []User
+		err := db.Model(&users).
+			Where("uid in (?)", pg.In(uids)).
+			Select()
+		if err != nil {
+			return nil, err
+		}
+		return users, nil
+	} else {
+		return nil, nil
 	}
-	return users, nil
 }
 
 // SelectAllUser returns all users' info

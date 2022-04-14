@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -64,10 +65,12 @@ func GetUserProfile(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 	u, err := model.GetUserByUid(uid)
+	println("1")
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 	p, err := model.GetPostsByUid(uid)
+
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
@@ -75,6 +78,7 @@ func GetUserProfile(c echo.Context) error {
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
+
 	fr, err := model.GetFollowersOfUser(uid)
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -166,12 +170,10 @@ func ChangeUserInfo(c echo.Context) error {
 		Gender:   rec.Gender,
 		Intro:    rec.Intro,
 	}
-
 	err := model.UpdateUser(u)
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
-
 	return util.SuccessRespond(c, http.StatusOK, nil)
 }
 
@@ -184,6 +186,10 @@ func ChangeUserPwd(c echo.Context) error {
 
 	change := new(receiveChangePwd)
 	if err := c.Bind(change); err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, "pwd_old error,please check again")
+	}
+
+	if err := validate.Struct(change); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
@@ -193,7 +199,7 @@ func ChangeUserPwd(c echo.Context) error {
 
 	_, err = model.ValidateUser(change.Email, change.PwdOld)
 	if err != nil {
-		return util.ErrorResponse(c, http.StatusUnauthorized, "pwd_old error")
+		return util.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 	}
 
 	pwdHashNew, err := util.PwdHash(change.PwdNew)
@@ -222,6 +228,7 @@ func FollowUser(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
+	fmt.Println(rec.Status)
 	if rec.Status {
 		if err := model.InsertFollowShip(followee, follower); err != nil {
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())

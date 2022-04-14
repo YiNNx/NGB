@@ -13,8 +13,9 @@ import (
 func main() {
 	model.Connect()
 	defer model.Close()
-	model.CreateSchema()
-	following, err := model.GetFollowersOfUser(1)
+	uid := make([]int, 5)
+	uid = []int{1, 2, 3}
+	following, err := model.GetUsersByUids(uid)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -26,6 +27,7 @@ func main() {
 	for i := range f {
 		fmt.Println(f[i].Uid)
 	}
+
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())

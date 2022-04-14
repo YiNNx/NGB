@@ -32,19 +32,19 @@ type responseUserProfile struct {
 }
 
 type userAccount struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Phone    string `json:"phone"`
-	Avatar   string `json:"avatar"`
-	Nickname string `json:"nickname"`
-	Gender   int    `json:"gender"`
-	Intro    string `json:"intro"`
+	Email    string `json:"email" validate:"required"`
+	Username string `json:"username" validate:"required"`
+	Phone    string `json:"phone" validate:"required"`
+	Avatar   string `json:"avatar" validate:"required"`
+	Nickname string `json:"nickname" validate:"required"`
+	Gender   int    `json:"gender" validate:"required"`
+	Intro    string `json:"intro" validate:"required"`
 }
 
 type receiveChangePwd struct {
-	Email  string `json:"email"`
-	PwdOld string `json:"pwdOld"`
-	PwdNew string `json:"pwdNew"`
+	Email  string `json:"email"  validate:"required,email"`
+	PwdOld string `json:"pwd_old"  validate:"required,max=20,min=6"`
+	PwdNew string `json:"pwd_new"  validate:"required,max=20,min=6"`
 }
 
 type responseAllUser struct {
@@ -202,8 +202,8 @@ type responsePostDetail struct {
 }
 
 type receiveNewPost struct {
-	Title   string   `json:"title"`
-	Content string   `json:"content"`
+	Title   string   `json:"title"  validate:"required"`
+	Content string   `json:"content"  validate:"required"`
 	Tags    []string `json:"tags"`
 }
 
@@ -213,7 +213,7 @@ type responseNewPost struct {
 }
 
 type receiveNewStatus struct {
-	Status bool `json:"status"`
+	Status bool `json:"status" validate:"required" `
 }
 
 type responseBoardDetail struct {
@@ -225,10 +225,10 @@ type responseBoardDetail struct {
 }
 
 type receiveCommentPost struct {
-	Content string `json:"content"`
+	Content string `json:"content"  validate:"required"`
 }
 
 type receiveSubCommentPost struct {
-	To      int    `json:"to"`
-	Content string `json:"content"`
+	To      int    `json:"to"  validate:"required"`
+	Content string `json:"content"  validate:"required"`
 }

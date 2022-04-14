@@ -51,14 +51,18 @@ func GetPostsByTag(tag string) ([]Post, error) {
 }
 
 func GetPostsByPids(pids []int) ([]Post, error) {
-	var posts []Post
-	err := db.Model(&posts).
-		Where("pid in (?)", pg.In(pids)).
-		Select()
-	if err != nil {
-		return nil, err
+	if pids != nil {
+		var posts []Post
+		err := db.Model(&posts).
+			Where("pid in (?)", pg.In(pids)).
+			Select()
+		if err != nil {
+			return nil, err
+		}
+		return posts, nil
+	} else {
+		return nil, nil
 	}
-	return posts, nil
 }
 
 func GetPostsByUid(uid int) ([]Post, error) {
@@ -90,4 +94,13 @@ func SelectAllPosts() ([]Post, error) {
 		return nil, err
 	}
 	return posts, nil
+}
+
+func CheckPostId(pid int) error {
+	p := &Post{Pid: pid}
+	err := db.Model(p).WherePK().Select()
+	if err != nil {
+		return err
+	}
+	return nil
 }

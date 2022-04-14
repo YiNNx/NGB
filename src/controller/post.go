@@ -157,6 +157,7 @@ func LikePost(c echo.Context) error {
 	}
 
 	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+
 	rec := new(receiveNewStatus)
 	if err := c.Bind(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -166,18 +167,22 @@ func LikePost(c echo.Context) error {
 		if err := model.InsertLike(pid, uid); err != nil {
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
+		return util.SuccessRespond(c, http.StatusOK, nil)
 	} else {
 		if err := model.DeleteLike(pid, uid); err != nil {
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
+		return util.SuccessRespond(c, http.StatusOK, nil)
 	}
-
-	return util.SuccessRespond(c, http.StatusOK, nil)
 }
 
 func CommentPost(c echo.Context) error {
 	rec := new(receiveCommentPost)
 	if err := c.Bind(rec); err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	if err := validate.Struct(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
@@ -215,6 +220,10 @@ func CommentPost(c echo.Context) error {
 func SubCommentPost(c echo.Context) error {
 	rec := new(receiveSubCommentPost)
 	if err := c.Bind(rec); err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	if err := validate.Struct(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 

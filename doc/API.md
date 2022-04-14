@@ -1,6 +1,7 @@
 # API
 
-#### 基本格式
+- #### 基本格式
+
 
 ```
 {
@@ -19,20 +20,6 @@
 }
 ```
 
-需user权限: 标 `*`
-
-需board_manager权限: 标 `**`
-
-需super_admin权限: 标 `***`
-
-#### **http header：**
-
-```
-Authorization: Bearer xxxxxxxxxx
-```
-
-
-
 - #### 注册
 
   `POST /user`
@@ -41,127 +28,34 @@ Authorization: Bearer xxxxxxxxxx
 
   ```
   {
-      "email": "xxxx",
-  	"username":"xxxxx",
-      "pwd": "xxxxxxxx"
+      "email": "2333@moe.com",
+  	"username": "233333",
+      "pwd": "123456"
   }
   ```
-
-  （字段均不能为空，且邮箱须有效格式，邮箱用户名不可重复）
 
   Response：
 
   ```
   {
-        "uid": 23
-        "token":"xxxxxxxxxxxx"
-  }
+          "uid": 5,
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwicm9sZSI6ZmFsc2UsImV4cCI6MTY1MDE1NzYxNX0.UwSnB0dCwvusKYvKgfFLKBqzJLt1ZU-KDhDoS2n8r2o"
+      }
   ```
-
+  
 - #### 登录
 
-  `GET /user/token?email=xxxxx&pwd=xxxxx`
+  `GET /user/token?email=2333@moe.com&pwd=123456`
 
   Response：
 
   ```
   {
-  	"uid": 23
-      "token":"xxxxxxxxxxx"
-  }
+          "uid": 5,
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwicm9sZSI6ZmFsc2UsImV4cCI6MTY1MDE1Nzc2N30.OlEbOnKDl81Aws6TDapjQaMzXZTCdj5s8Kg4Wy-_UYY"
+      }
   ```
 
-- #### 查看用户公开资料
-
-  `GET /user/:uid`
-
-  Response：
-
-  ```
-  {
-  	"username":"xxxxx",
-  	"nickname":"xxxx",
-  	"avatar"
-  	"gender"
-  	"posts":[
-  		{
-  			......
-  		},
-  		......
-  	],
-  	"followers"
-  	"following"
-  	"likes"
-  	"collections"
-  	"boards_join"
-  }
-  ```
-
-
-- #### 查看账户信息*
-
-  `GET /user/account`
-
-  ```
-  {
-  	"email"
-  	"username"
-  	"phone"
-  	"avatar"
-  	"nickname":"xxxx",
-  	"gender"
-  	"intro"
-  }
-  ```
-
-- #### 修改用户信息*
-
-  `PUT /user/account`
-
-  Request:
-
-  ```
-  {
-  	"email"
-  	"username"
-  	"phone"
-  	"avatar"
-  	"nickname":"xxxx",
-  	"gender"
-  	"intro"
-  }
-  ```
-
-  （字段均不能为空，且邮箱须有效格式）
-
-- #### 修改密码*
-
-  `PUT /user/password`
-
-  Request
-
-  ```
-  {
-      "email": "xxxx",
-  
-      "pwd_old": "xxxxxxxx",
-      "pwd_new": "xxxxxxxx"
-  }
-  ```
-
-- #### 关注用户*
-
-  `PUT /user/:uid/follow`
-
-  ```
-  {
-  	"status":true
-  }
-  ```
-
-  取消关注则status为false
-
-  后面同理
 
 - #### 查看板块
 
@@ -171,25 +65,28 @@ Authorization: Bearer xxxxxxxxxx
 
   ```
   {
-  	"bid":
-  	"name":"xxx",
-  	"avatar":"xxxx",
-  	"intro":"xxxx",
-  	"posts":[
-  		{
-  			"pid":xx,//帖子id
-  			"title":"xx",//标题
-  			"uid":xx,//发帖人
-  			"comments":xx//评论数
-  		},
-  		{
-  			"pid":xx,
-  			"title":"xx",
-  			"uid":xx,
-  			"comments":xx
-  		},
-  		....
-  	]
+      "bid": 1,
+      "name": "综合版",
+      "avatar": "",
+      "intro": "综合板块",
+      "posts": [
+          {
+              "pid": 2,
+              "title": "今天是星期四",
+              "author": 1,
+              "time": "2022-04-14T13:23:14.739842+08:00",
+              "board": 1,
+              "likes_count": 1
+          },
+          {
+              "pid": 4,
+              "title": "安利一款rpg游戏",
+              "author": 9,
+              "time": "2022-04-14T15:34:32.929336+08:00",
+              "board": 1,
+              "likes_count": 1
+          }
+      ]
   }
   ```
 
@@ -197,65 +94,77 @@ Authorization: Bearer xxxxxxxxxx
 
   `GET /board/all`
 
-- #### 加入板块
-
-  `PUT /board/:bid/join`
+  Response:
 
   ```
-  {
-  	"status":true
-  }
+  [
+          {
+              "bid": 1,
+              "name": "综合版",
+              "avatar": "",
+              "intro": "综合板块"
+          },
+          {
+              "bid": 2,
+              "name": "游戏版",
+              "avatar": "",
+              "intro": "游戏交流"
+          },
+          {
+              "bid": 3,
+              "name": "版务",
+              "avatar": "",
+              "intro": "论坛管理板块"
+          },
+          {
+              "bid": 4,
+              "name": "技术版",
+              "avatar": "",
+              "intro": "技术交流"
+          }
+      ]
   ```
-  
+
 - #### 查看贴子
 
   `GET /post/:pid`
 
   ```
   {
-       "pid": "帖子ID",
-       "title": "标题"
-       "author": {
-           "uid": "发布者ID",
-           "avatar": "发布者头像URL",
-           "nickname": "发布者昵称",
-       },
-       "time": "发布时间",
-   	"board":{
-   		"bid":"板块ID"，
-   		"avatar":"板块头像"
-   		"name":"板块名称"
-   	}
-       "tags": ["xxxx","xxxxx"],
-       "content": "文本内容",
-       "likes_count": 1,
-       "is_like": true, 
-       "likes":[
-       {
-           "uid": "发布者用户ID",
-           "avatar": "发布者头像URL",
-           "nickname": "发布者昵称",
-       },
-       ...
-       ]
-       "collections_count": 1,
-       "is_collect": true, 
-       "comments_count": 1, 
-       "comments": [
-       {
-       	"cid":"xx",
-       	"parent_cid":"xx",
-       	"from":{
-           	"uid": "xxx",
-           	"avatar": "xxxx",
-           	"nickname": "xxx",
-       	},
-       	"time":"",
-       	"is_author":false,
-       	"content":"xxxxx"
-       },
-       ...
-       ] // 评论
+      "uid": 6,
+      "title": "安利一款rpg游戏",
+      "author": {
+          "uid": 9,
+          "username": "meeseeeks",
+          "avatar": ""
+      },
+      "time": "2022-04-14T15:46:34.518722+08:00",
+      "board": {
+          "bid": 2,
+          "name": "游戏版",
+          "avatar": "",
+          "intro": "游戏交流"
+      },
+      "tags": [
+          "rgb"
+      ],
+      "content": "安利一款rpg游戏是怎么回事呢？安利相信大家都很熟悉， 但是安利一款rpg游戏是怎么回事呢？下面就让小编带大家一起了解吧。 安利一款rpg游戏，其实就是安利一款rpg游戏了。 大家可能会感到很惊讶，安利怎么会一款rpg游戏呢？... 但事实就是这样，小编也感到非常惊讶。 那么这就是关于安利一款rpg游戏的事情了，大家有什么想法呢？欢迎在评论区告诉小编一起讨论哦",
+      "likes_count": 2,
+      "comments_count": 1,
+      "comments": [
+          {
+              "cid": 8,
+              "parent_cid": 0,
+              "is_author": false,
+              "from": {
+                  "uid": 1,
+                  "username": "xxxxx",
+                  "avatar": ""
+              },
+              "time": "2022-04-14T15:51:05.970339+08:00",
+              "content": "好！"
+          }
+      ]
   }
   ```
   
@@ -267,28 +176,6 @@ Authorization: Bearer xxxxxxxxxx
 
   `GET /post?tag=xxxxx`
 
-  Response:
-
-  ```
-  {
-  	"posts":[
-  		{
-  			"pid":xx,//帖子id
-  			"title":"xx",//标题
-  			"uid":xx,//发帖人
-  			"comments":xx//评论数
-  		},
-  		{
-  			"pid":xx,
-  			"title":"xx",
-  			"uid":xx,
-  			"comments":xx
-  		},
-  		....
-  	]
-  }
-  ```
-
 
 - #### 发帖*
 
@@ -298,9 +185,9 @@ Authorization: Bearer xxxxxxxxxx
 
   ```
   {
-  	"bid":11,
-  	"title":"xxx",
-  	"content":"xxx",
+  	"title":"今天是星期四",
+  	"content":"今天是星期四是怎么回事呢？今天是相信大家都很熟悉， 但是今天是星期四是怎么回事呢？下面就让小编带大家一起了解吧。 今天是星期四，其实就是今天是星期四了。 大家可能会感到很惊讶，今天是怎么会星期四呢？... 但事实就是这样，小编也感到非常惊讶。 那么这就是关于今天是星期四的事情了，大家有什么想法呢？欢迎在评论区告诉小编一起讨论哦",
+      "tag":"灌水"
   }
   ```
 
@@ -308,8 +195,8 @@ Authorization: Bearer xxxxxxxxxx
 
   ```
   {
-  	"pid":"xxxxx"
-  	"time":"xxxxxx"
+  	"pid": 2,
+  	"time": "2022-04-14T13:23:14.739842+08:00"
   }
   ```
 
@@ -324,6 +211,8 @@ Authorization: Bearer xxxxxxxxxx
   	"statu":true
   }
   ```
+
+  取消收藏则status为false，后面同理
 
 - #### 点赞帖子*
 
@@ -362,58 +251,121 @@ Authorization: Bearer xxxxxxxxxx
   }
   ```
 
-#### 需要admin权限的操作：
+- #### 查看用户公开资料
 
-http header：
+  `GET /user/:uid`
 
-```
-Authorization: Bearer xxxxxxxxxx
-```
-
-token异常返回401，role不为admin返回403
-
-- `GET /user/all`
-
-  查看所有用户信息
-
-  返回:
-
-  ```
-  [
-          {
-              "id": 1,
-              "email": "xxxxxx",
-              "username": "xxxxxx",
-              "createTime": "xxxxxx",
-              "role": false
-          },
-  		......
-          {
-              "id": 11,
-              "email": "xxxxxx",
-              "username": "xxxxx",
-              "createTime": "xxxxxx",
-              "role": false
-          }
-  ]
-  ```
-
-- `DELETE /user/:id`
-
-  删除用户
-
-  http header：
-
-  ```
-  Authorization: Bearer xxxxxxxxxx
-  ```
-
-  返回:
+  Response：
 
   ```
   {
-  	"success": true,
-  	"msg": "",
-  	"data": null
+      "username": "233333",
+      "nickname": "moe",
+      "avatar": "",
+      "gender": 0,
+      "posts": [
+          {
+              "pid": 3,
+              "title": "今天是星期四",
+              "author": 5,
+              "time": "2022-04-14T15:29:22.460602+08:00",
+              "board": 1,
+              "likes_count": 1
+          }
+      ],
+      "followers": null,
+      "following": [
+          {
+              "uid": 9,
+              "username": "meeseeeks",
+              "avatar": ""
+          }
+      ],
+      "likes": [
+          {
+              "pid": 1,
+              "title": "test",
+              "author": 1,
+              "time": "2022-04-12T13:20:32.426289+08:00",
+              "board": 2,
+              "likes_count": 2
+          }
+      ],
+      "collections": [
+          {
+              "pid": 4,
+              "title": "安利一款rgb游戏",
+              "author": 9,
+              "time": "2022-04-14T15:34:32.929336+08:00",
+              "board": 1,
+              "likes_count": 1
+          }
+      ],
+      "boards_join": null
   }
   ```
+
+
+- #### 关注用户*
+
+  `PUT /user/follow/:uid`
+
+  ```
+  {
+  	"status":true
+  }
+  ```
+
+- #### 查看账户信息*
+
+  `GET /user/account`
+
+  Response:
+
+  ```
+  {
+      "email": "2333@moe.com",
+      "username": "233333",
+      "phone": "1582333",
+      "avatar": "",
+      "nickname": "moe",
+      "gender": 0,
+      "intro": "a boring person"
+  }
+  ```
+
+- #### 修改用户信息*
+
+  `PUT /user/account`
+
+  Request:
+
+  ```
+  {
+      "email": "2333@moe.com",
+      "username": "233333",
+      "phone": "1582333",
+      "avatar": "",
+      "nickname": "moe",
+      "gender": 0,
+      "intro": "a boring person"
+  }
+  ```
+
+  （字段均不能为空，且邮箱须有效格式）
+
+- #### 修改密码*
+
+  `PUT /user/password`
+
+  Request
+
+  ```
+  {
+      "email": "2333@moe.com",
+      "pwd_old": "123456",
+      "pwd_new": "654321"
+  }
+  ```
+
+  

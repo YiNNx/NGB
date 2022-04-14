@@ -35,14 +35,18 @@ func GetBoardByBid(bid int) (*Board, error) {
 }
 
 func GetBoardsByBids(bids []int) ([]Board, error) {
-	var boards []Board
-	err := db.Model(&boards).
-		Where("bid in (?)", pg.In(bids)).
-		Select()
-	if err != nil {
-		return nil, err
+	if bids != nil {
+		var boards []Board
+		err := db.Model(&boards).
+			Where("bid in (?)", pg.In(bids)).
+			Select()
+		if err != nil {
+			return nil, err
+		}
+		return boards, nil
+	} else {
+		return nil, nil
 	}
-	return boards, nil
 }
 
 func SelectAllBoards() ([]Board, error) {
@@ -52,4 +56,13 @@ func SelectAllBoards() ([]Board, error) {
 		return nil, err
 	}
 	return boards, nil
+}
+
+func CheckBoardId(bid int) error {
+	b := &Board{Bid: bid}
+	err := db.Model(b).WherePK().Select()
+	if err != nil {
+		return err
+	}
+	return nil
 }

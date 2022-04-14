@@ -52,3 +52,12 @@ func GetCommentsByPid(pid int) ([]Comment, error) {
 	}
 	return comments, nil
 }
+
+func CheckCommentId(cid int) error {
+	c := &Comment{Cid: cid}
+	err := db.Model(c).WherePK().Select()
+	if err != nil {
+		return err
+	}
+	return nil
+}
