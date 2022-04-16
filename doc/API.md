@@ -57,9 +57,9 @@
   ```
 
 
-- #### 查看板块
+- #### 查看板块内容
 
-  `GET /board/:bid`
+  `GET /board/:bid?amount=3&page=1`
 
   Response:
 
@@ -140,7 +140,7 @@
           "intro": "游戏交流"
       },
       "tags": [
-          "rgb"
+          "rpg"
       ],
       "content": "安利一款rpg游戏是怎么回事呢？安利相信大家都很熟悉， 但是安利一款rpg游戏是怎么回事呢？下面就让小编带大家一起了解吧。 安利一款rpg游戏，其实就是安利一款rpg游戏了。 大家可能会感到很惊讶，安利怎么会一款rpg游戏呢？... 但事实就是这样，小编也感到非常惊讶。 那么这就是关于安利一款rpg游戏的事情了，大家有什么想法呢？欢迎在评论区告诉小编一起讨论哦",
       "likes_count": 2,
@@ -163,11 +163,13 @@
   
 - ### 查看所有帖子
 
-  `GET /post/all`
+  `GET /post/all?amount=3&page=1`
+
+  分页默认为amount=10，page=1
 
 - #### 查看Tag
 
-  `GET /post?tag=xxxxx`
+  `GET /post?tag=xxxxx&amount=3&page=1`
 
 
 - #### 发帖*
@@ -201,7 +203,7 @@
 
   ```
   {
-  	"statu":true
+  	"status":true
   }
   ```
 
@@ -286,7 +288,7 @@
       "collections": [
           {
               "pid": 4,
-              "title": "安利一款rgb游戏",
+              "title": "安利一款rpg游戏",
               "author": 9,
               "time": "2022-04-14T15:34:32.929336+08:00",
               "board": 1,
@@ -341,8 +343,6 @@
       "intro": "a boring person"
   }
   ```
-
-  （字段均不能为空，且邮箱须有效格式）
 
 - #### 修改密码*
 

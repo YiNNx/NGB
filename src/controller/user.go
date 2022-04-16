@@ -60,12 +60,10 @@ func LogIn(c echo.Context) error {
 
 func GetUserProfile(c echo.Context) error {
 	uid, err := strconv.Atoi(c.Param("uid"))
-
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 	u, err := model.GetUserByUid(uid)
-	println("1")
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
@@ -110,7 +108,7 @@ func GetUserProfile(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	boards := NewBoardOutlines(b)
-
+	println("1")
 	res := &responseUserProfile{
 		Username:    u.Username,
 		Nickname:    u.Nickname,

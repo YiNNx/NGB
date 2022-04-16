@@ -18,6 +18,10 @@ func GetAllBoards(c echo.Context) error {
 }
 
 func GetBoard(c echo.Context) error {
+	limit, offset, err := paginate(c)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
 	bid, err := strconv.Atoi(c.Param("bid"))
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -26,7 +30,7 @@ func GetBoard(c echo.Context) error {
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
-	p, err := model.GetPostsByBoard(bid)
+	p, err := model.GetPostsByBoard(bid, limit, offset)
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}

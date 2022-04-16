@@ -41,7 +41,11 @@ func NewPost(c echo.Context) error {
 }
 
 func GetAllPosts(c echo.Context) error {
-	posts, err := model.SelectAllPosts()
+	limit, offset, err := paginate(c)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	posts, err := model.SelectAllPosts(limit, offset)
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
@@ -111,8 +115,12 @@ func GetPost(c echo.Context) error {
 }
 
 func GetPostsByTag(c echo.Context) error {
+	limit, offset, err := paginate(c)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
 	tag := c.Param("tag")
-	posts, err := model.GetPostsByTag(tag)
+	posts, err := model.GetPostsByTag(tag, limit, offset)
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
@@ -263,4 +271,24 @@ func SubCommentPost(c echo.Context) error {
 	}
 
 	return util.SuccessRespond(c, http.StatusOK, nil)
+}
+
+func paginate(c echo.Context) (int, int, error) {
+	a, p := c.QueryParam("amount"), c.QueryParam("page")
+	if a == "" {
+		a = "10"
+	}
+	if p == "" {
+		p = "1"
+	}
+	limit, err := strconv.Atoi(a)
+	if err != nil {
+		return 0, 0, err
+	}
+	page, err := strconv.Atoi(p)
+	if err != nil {
+		return 0, 0, err
+	}
+	offset := limit * (page - 1)
+	return limit, offset, nil
 }

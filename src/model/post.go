@@ -38,11 +38,11 @@ func GetPostByPid(pid int) (*Post, error) {
 	return p, nil
 }
 
-func GetPostsByTag(tag string) ([]Post, error) {
+func GetPostsByTag(tag string, limit int, offset int) ([]Post, error) {
 	var posts []Post
 	err := db.Model(&posts).
 		Where("tags::jsonb ?& array['" + tag + "']").
-		Select()
+		Limit(limit).Offset(offset).Select()
 	if err != nil {
 		return nil, err
 	}
@@ -75,20 +75,20 @@ func GetPostsByUid(uid int) ([]Post, error) {
 	return posts, nil
 }
 
-func GetPostsByBoard(bid int) ([]Post, error) {
+func GetPostsByBoard(bid int, limit int, offset int) ([]Post, error) {
 	var posts []Post
 	err := db.Model(&posts).
 		Where("board = ?", bid).
-		Select()
+		Limit(limit).Offset(offset).Select()
 	if err != nil {
 		return nil, err
 	}
 	return posts, nil
 }
 
-func SelectAllPosts() ([]Post, error) {
+func SelectAllPosts(limit int, offset int) ([]Post, error) {
 	var posts []Post
-	err := db.Model(&posts).Select()
+	err := db.Model(&posts).Limit(limit).Offset(offset).Select()
 	if err != nil {
 		return nil, err
 	}
