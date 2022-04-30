@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"os"
 )
 
 var (
@@ -27,6 +26,8 @@ type postgresql struct {
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 	Dbname   string `yaml:"dbname"`
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
 }
 
 type jwt struct {
@@ -34,15 +35,9 @@ type jwt struct {
 }
 
 func init() {
-	configFile := "default.yml"
-
-	// 如果有设置 ENV ，则使用ENV中的环境
-	if v, ok := os.LookupEnv("ENV"); ok {
-		configFile = v + ".yml"
-	}
 
 	// 读取配置文件
-	data, err := ioutil.ReadFile(fmt.Sprintf("./env/config/%s", configFile))
+	data, err := ioutil.ReadFile(fmt.Sprintf("./env/config/default.yml"))
 
 	if err != nil {
 		//Logger.Println("Read config error!")
@@ -66,6 +61,7 @@ func init() {
 	C = config
 
 	//Logger.Println("Config " + configFile + " loaded.")
-	fmt.Println("Config " + configFile + " loaded.")
+	fmt.Println("Config loaded.")
 
 }
+
