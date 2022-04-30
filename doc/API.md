@@ -61,6 +61,8 @@
 
   `GET /board/:bid?amount=3&page=1`
 
+  分页默认为amount=10，page=1
+
   Response:
 
   ```
@@ -164,8 +166,6 @@
 - ### 查看所有帖子
 
   `GET /post/all?amount=3&page=1`
-
-  分页默认为amount=10，page=1
 
 - #### 查看Tag
 
