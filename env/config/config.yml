@@ -4,7 +4,9 @@ app:
 postgresql:
   user: ""
   password: ""
-  dbname: "ngb"
+  dbname: "ngb_beta"
+  host: ""
+  port: ""
 
 jwt:
   secret: ""

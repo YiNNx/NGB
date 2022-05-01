@@ -358,4 +358,111 @@
   }
   ```
 
-  
+
+
+
+### super_admin
+
+- #### 创建板块
+
+  `POST /board`
+
+  ```
+  {
+  	"name": "",
+      "avatar": "",
+      "intro": "",
+  }
+  ```
+
+- #### 编辑板块信息
+
+  `POST /board/:bid?`
+
+  ```
+  {
+  	"name": "",
+      "avatar": "",
+      "intro": "",
+  }
+  ```
+
+- #### 删除板块
+
+  `DELETE /board/:bid?`
+
+- #### 删帖
+
+  `DELETE /post/:pid`
+
+- #### 删用户
+
+  `DELETE /user/:uid`
+
+- #### 查看所有用户
+
+  `GET /user/all`
+
+- #### 查看所有板块管理员
+
+  `GET /user/admin`
+
+- #### 查看管理员 & 创建板块申请
+
+  `GET /apply`
+
+- #### 通过申请
+
+  `POST /apply/:apid`
+
+  ```
+  {
+  	"status":true,
+  }
+  ```
+
+### admin
+
+- #### 编辑板块信息
+
+  `POST /board/:bid?`
+
+  ```
+  {
+  	"name": "",
+      "avatar": "",
+      "intro": "",
+  }
+  ```
+
+- #### 删除帖子
+
+  `DELETE /post/:pid`
+
+- #### 申请成为板块管理员
+
+  `POST /apply/admin`
+
+  ```
+  {
+  	"bid": 123,
+  	"reason": ""
+  }
+  ```
+
+- #### 申请创建板块
+
+  `POST /apply/board`
+
+  ```
+  {
+  	"name": "",
+  	"reason": ""
+  }
+  ```
+
+### notification
+
+- #### 查看通知
+
+  `GET /notification`

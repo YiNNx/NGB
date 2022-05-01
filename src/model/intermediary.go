@@ -247,6 +247,17 @@ func GetManagersOfBoard(bid int) ([]User, error) {
 	return nil, nil
 }
 
+func CheckAdmin(bid int, uid int) (bool, error) {
+	m := new(ManageShip)
+	if err := db.Model(m).Where("bid = ?", bid).Where("uid = ?", uid).Select(); err != nil {
+		return false, err
+	}
+	if m == nil {
+		return false, nil
+	}
+	return true, nil
+}
+
 //关注
 
 type FollowShip struct {

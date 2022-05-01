@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"ngb/controller"
+	myware "ngb/middleware"
 	"ngb/util"
 )
 
@@ -17,4 +18,7 @@ func initPostRouter(e *echo.Echo) {
 	g.PUT("/:pid/like", controller.LikePost, middleware.JWTWithConfig(util.Conf))
 	g.POST("/:pid/comment", controller.CommentPost, middleware.JWTWithConfig(util.Conf))
 	g.POST("/:pid/comment/:cid/subcomment", controller.SubCommentPost, middleware.JWTWithConfig(util.Conf))
+
+	g.DELETE("/:pid", controller.DeletePost, middleware.JWTWithConfig(util.Conf), myware.VerifyAdmin)
+
 }

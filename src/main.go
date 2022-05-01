@@ -19,4 +19,5 @@ func main() {
 	router.InitRouters(e)
 
 	e.Logger.Fatal(e.Start(config.C.App.Addr))
+
 }

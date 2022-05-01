@@ -21,6 +21,7 @@ func initUserRouter(e *echo.Echo) {
 	g.PUT("/account", controller.ChangeUserInfo, middleware.JWTWithConfig(util.Conf))
 	g.PUT("/password", controller.ChangeUserPwd, middleware.JWTWithConfig(util.Conf))
 
-	g.GET("/all", controller.GetAllUsers, middleware.JWTWithConfig(util.Conf), myware.VerifyAdmin)
-	g.DELETE("/:id", controller.DeleteUser, middleware.JWTWithConfig(util.Conf), myware.VerifyAdmin)
+	g.GET("/all", controller.GetAllUsers, middleware.JWTWithConfig(util.Conf), myware.VerifySuperAdmin)
+	g.GET("/admin", controller.GetAdmins, middleware.JWTWithConfig(util.Conf), myware.VerifySuperAdmin)
+	g.DELETE("/:id", controller.DeleteUser, middleware.JWTWithConfig(util.Conf), myware.VerifySuperAdmin)
 }

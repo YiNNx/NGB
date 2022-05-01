@@ -6,4 +6,5 @@ func InitRouters(e *echo.Echo) {
 	initUserRouter(e)
 	initPostRouter(e)
 	initBoardRouter(e)
+	initApplyRouter(e)
 }

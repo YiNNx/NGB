@@ -18,7 +18,7 @@ services:
     build: .
     environment:
       - TZ=Asia/Shanghai
-      - ENV=prod
+      - ENV=default
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./src:/src

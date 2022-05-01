@@ -27,8 +27,20 @@ type User struct {
 }
 
 func InsertUser(u *User) error {
-	_, err := db.Model(u).Insert()
+	tx, err := db.Begin()
 	if err != nil {
+		return err
+	}
+	defer tx.Close()
+
+	_, err = tx.Model(u).Insert()
+	if err != nil {
+		if err2 := tx.Rollback(); err2 != nil {
+			return err
+		}
+		return err
+	}
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 	return nil

@@ -275,3 +275,7 @@ func DeleteUser(c echo.Context) error {
 
 	return util.SuccessRespond(c, http.StatusOK, nil)
 }
+
+func GetAdmins(c echo.Context) error {
+	return nil
+}

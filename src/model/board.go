@@ -18,8 +18,14 @@ type Board struct {
 }
 
 func InsertBoard(b *Board) error {
-	_, err := db.Model(b).Insert()
+	tx, err := db.Begin()
+	defer tx.Close()
+	_, err = db.Model(b).Insert()
 	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 	return nil

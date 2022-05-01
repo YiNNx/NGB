@@ -232,3 +232,19 @@ type receiveSubCommentPost struct {
 	To      int    `json:"to"  validate:"required"`
 	Content string `json:"content"  validate:"required"`
 }
+
+type boardInfo struct {
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
+	Intro  string `json:"intro"`
+}
+
+type receiveAdminApply struct {
+	Bid    int    `json:"bid"`
+	Reason string `json:"reason"`
+}
+
+type receiveBoardApply struct {
+	Title  string `json:"title"`
+	Reason string `json:"reason"`
+}

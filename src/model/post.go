@@ -103,3 +103,12 @@ func CheckPostId(pid int) error {
 	}
 	return nil
 }
+
+func GetBoardByPost(pid int) (int, error) {
+	p := &Post{Pid: pid}
+	err := db.Model(p).WherePK().Select()
+	if err != nil {
+		return 0, err
+	}
+	return p.Board, nil
+}

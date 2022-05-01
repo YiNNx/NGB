@@ -17,24 +17,12 @@ func init() {
 
 // Connect database
 func Connect() *pg.DB {
-	//db = pg.Connect(&pg.Options{
-	//	User:     config.C.Postgresql.User,
-	//	Password: config.C.Postgresql.Password,
-	//	Database: config.C.Postgresql.Dbname,
-	//})
-	connection := "postgresql://" +
-		config.C.Postgresql.User + ":" +
-		config.C.Postgresql.Password + "@" +
-		config.C.Postgresql.Host + ":" +
-		config.C.Postgresql.Port + "/" +
-		config.C.Postgresql.Dbname
-
-	opt, err := pg.ParseURL(connection + "?sslmode=disable")
-	if err != nil {
-		panic(err)
-	}
-
-	db := pg.Connect(opt)
+	db = pg.Connect(&pg.Options{
+		Addr:     config.C.Postgresql.Host + ":" + config.C.Postgresql.Port,
+		User:     config.C.Postgresql.User,
+		Password: config.C.Postgresql.Password,
+		Database: config.C.Postgresql.Dbname,
+	})
 
 	var n int
 	if _, err := db.QueryOne(pg.Scan(&n), "SELECT 1"); err != nil {
@@ -66,4 +54,3 @@ func CreateSchema() error {
 	}
 	return nil
 }
-

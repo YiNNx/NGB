@@ -47,3 +47,15 @@ func GetBoard(c echo.Context) error {
 	}
 	return util.SuccessRespond(c, http.StatusOK, res)
 }
+
+func SetBoard(c echo.Context) error {
+	return nil
+}
+
+func UpdateBoard(c echo.Context) error {
+	return nil
+}
+
+func DeleteBoard(c echo.Context) error {
+	return nil
+}

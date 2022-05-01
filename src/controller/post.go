@@ -292,3 +292,7 @@ func paginate(c echo.Context) (int, int, error) {
 	offset := limit * (page - 1)
 	return limit, offset, nil
 }
+
+func DeletePost(c echo.Context) error {
+	return nil
+}
