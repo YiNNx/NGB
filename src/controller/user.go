@@ -81,12 +81,12 @@ func GetUserProfile(c echo.Context) error {
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
-	followers := NewUerOutlines(fr)
+	followers := NewUserOutlines(fr)
 	fi, err := model.GetFollowingOfUser(uid)
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
-	following := NewUerOutlines(fi)
+	following := NewUserOutlines(fi)
 	l, err := model.GetLikesOfUser(uid)
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -225,6 +225,9 @@ func FollowUser(c echo.Context) error {
 	if err := c.Bind(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
+	if err := validate.Struct(rec); err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
 
 	fmt.Println(rec.Status)
 	if rec.Status {
@@ -246,15 +249,7 @@ func GetAllUsers(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	usersInfo := make([]responseAllUser, len(users))
-	for i := range users {
-		usersInfo[i].Uid = users[i].Uid
-		usersInfo[i].Email = users[i].Email
-		usersInfo[i].Username = users[i].Username
-		usersInfo[i].CreateTime = users[i].CreateTime
-		usersInfo[i].Role = users[i].Role
-	}
-
+	usersInfo := NewUserInfos(users)
 	return util.SuccessRespond(c, http.StatusOK, usersInfo)
 }
 
@@ -277,5 +272,21 @@ func DeleteUser(c echo.Context) error {
 }
 
 func GetAdmins(c echo.Context) error {
-	return nil
+	boards, err := model.SelectAllBoards()
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	res := make([]responseAllAdmins, len(boards))
+	for i := range boards {
+		users, err := model.GetManagersOfBoard(boards[i].Bid)
+		if err != nil {
+			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+		}
+		res[i].Admins = NewUserInfos(users)
+		res[i].Bid = boards[i].Bid
+		res[i].Name = boards[i].Name
+		res[i].Bid = boards[i].Bid
+		res[i].Intro = boards[i].Intro
+	}
+	return util.SuccessRespond(c, http.StatusOK, res)
 }

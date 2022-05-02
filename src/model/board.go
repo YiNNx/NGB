@@ -31,6 +31,17 @@ func InsertBoard(b *Board) error {
 	return nil
 }
 
+func UpdateBoard(b *Board) error {
+	_, err := db.Model(b).
+		Column("name", "avatar", "intro").
+		Where("bid = ?", b.Bid).
+		Update()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func GetBoardByBid(bid int) (*Board, error) {
 	b := &Board{Bid: bid}
 	err := db.Model(b).WherePK().Select()
@@ -67,6 +78,15 @@ func SelectAllBoards() ([]Board, error) {
 func CheckBoardId(bid int) error {
 	b := &Board{Bid: bid}
 	err := db.Model(b).WherePK().Select()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteBoard(bid int) error {
+	b := &Board{Bid: bid}
+	_, err := db.Model(b).WherePK().Delete()
 	if err != nil {
 		return err
 	}

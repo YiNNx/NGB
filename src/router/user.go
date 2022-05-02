@@ -1,4 +1,4 @@
-package router
+package old
 
 import (
 	"github.com/labstack/echo/v4"
@@ -13,10 +13,9 @@ func initUserRouter(e *echo.Echo) {
 
 	g.POST("", controller.SignUP)
 	g.GET("/token", controller.LogIn)
-
 	g.GET("/:uid", controller.GetUserProfile)
-	g.PUT("/follow/:uid", controller.FollowUser, middleware.JWTWithConfig(util.Conf))
 
+	g.PUT("/follow/:uid", controller.FollowUser, middleware.JWTWithConfig(util.Conf))
 	g.GET("/account", controller.GetUserAccount, middleware.JWTWithConfig(util.Conf))
 	g.PUT("/account", controller.ChangeUserInfo, middleware.JWTWithConfig(util.Conf))
 	g.PUT("/password", controller.ChangeUserPwd, middleware.JWTWithConfig(util.Conf))

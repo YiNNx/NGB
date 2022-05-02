@@ -239,12 +239,19 @@ func GetBoardsMngOfUser(uid int) ([]Board, error) {
 }
 
 func GetManagersOfBoard(bid int) ([]User, error) {
-	var b Board
-	err := db.Model(&b).Relation("Manages").Where("bid = ?", bid).Select()
+	var ms []ManageShip
+	if err := db.Model(&ms).Where("bid = ?", bid).Select(); err != nil {
+		return nil, err
+	}
+	var uids []int
+	for i, _ := range ms {
+		uids = append(uids, ms[i].Uid)
+	}
+	users, err := GetUsersByUids(uids)
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+	return users, nil
 }
 
 func CheckAdmin(bid int, uid int) (bool, error) {

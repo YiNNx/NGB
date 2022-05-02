@@ -1,4 +1,4 @@
-package router
+package old
 
 import (
 	"github.com/labstack/echo/v4"
@@ -14,6 +14,7 @@ func initPostRouter(e *echo.Echo) {
 	g.GET("", controller.GetPostsByTag)
 	g.GET("/all", controller.GetAllPosts)
 	g.GET("/:pid", controller.GetPost)
+
 	g.PUT("/:pid/collection", controller.CollectPost, middleware.JWTWithConfig(util.Conf))
 	g.PUT("/:pid/like", controller.LikePost, middleware.JWTWithConfig(util.Conf))
 	g.POST("/:pid/comment", controller.CommentPost, middleware.JWTWithConfig(util.Conf))

@@ -47,12 +47,24 @@ type receiveChangePwd struct {
 	PwdNew string `json:"pwd_new"  validate:"required,max=20,min=6"`
 }
 
-type responseAllUser struct {
+type userInfo struct {
 	Uid        int       `json:"uid"`
 	Email      string    `json:"email"`
 	Username   string    `json:"username"`
 	CreateTime time.Time `json:"createTime"`
 	Role       bool      `json:"role"`
+}
+
+func NewUserInfos(users []model.User) []userInfo {
+	usersInfo := make([]userInfo, len(users))
+	for i := range users {
+		usersInfo[i].Uid = users[i].Uid
+		usersInfo[i].Email = users[i].Email
+		usersInfo[i].Username = users[i].Username
+		usersInfo[i].CreateTime = users[i].CreateTime
+		usersInfo[i].Role = users[i].Role
+	}
+	return usersInfo
 }
 
 //post
@@ -63,7 +75,7 @@ type userOutline struct {
 	Avatar   string `json:"avatar"`
 }
 
-func NewUerOutline(uid int) (*userOutline, error) {
+func NewUserOutline(uid int) (*userOutline, error) {
 	u, err := model.GetUserByUid(uid)
 	if err != nil {
 		return nil, err
@@ -78,7 +90,7 @@ func NewUerOutline(uid int) (*userOutline, error) {
 	return outline, nil
 }
 
-func NewUerOutlines(u []model.User) []userOutline {
+func NewUserOutlines(u []model.User) []userOutline {
 	var outlines []userOutline
 	for i, _ := range u {
 		outlines = append(outlines, userOutline{
@@ -168,7 +180,7 @@ type commentDetail struct {
 func NewCommentDetails(p []model.Comment) ([]commentDetail, error) {
 	var details []commentDetail
 	for i, _ := range p {
-		user, err := NewUerOutline(p[i].From)
+		user, err := NewUserOutline(p[i].From)
 		if err != nil {
 			return nil, err
 		}
@@ -234,17 +246,44 @@ type receiveSubCommentPost struct {
 }
 
 type boardInfo struct {
-	Name   string `json:"name"`
-	Avatar string `json:"avatar"`
-	Intro  string `json:"intro"`
+	Name   string `json:"name" validate:"required"`
+	Avatar string `json:"avatar" validate:"required"`
+	Intro  string `json:"intro" validate:"required"`
 }
 
 type receiveAdminApply struct {
-	Bid    int    `json:"bid"`
+	Bid    int    `json:"bid" validate:"required"`
 	Reason string `json:"reason"`
 }
 
 type receiveBoardApply struct {
-	Title  string `json:"title"`
+	Name   string `json:"name" validate:"required"`
 	Reason string `json:"reason"`
+}
+
+type responseAdminApply struct {
+	Apid      int          `json:"apid"`
+	Type      int          `json:"type"`
+	Board     boardOutline `json:"board"`
+	Time      time.Time    `json:"time"`
+	Applicant userOutline  `json:"applicant"`
+	Reason    string       `json:"reason"`
+	Status    int          `json:"status"`
+}
+
+type responseBoardApply struct {
+	Apid      int         `json:"apid"`
+	Type      int         `json:"type"`
+	Time      time.Time   `json:"time"`
+	Applicant userOutline `json:"applicant"`
+	Name      string      `json:"name"`
+	Reason    string      `json:"reason"`
+	Status    int         `json:"status"`
+}
+
+type responseAllAdmins struct {
+	Bid    int        `json:"bid"`
+	Name   string     `json:"name"`
+	Intro  string     `json:"intro"`
+	Admins []userInfo `json:"admins"`
 }

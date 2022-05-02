@@ -112,3 +112,12 @@ func GetBoardByPost(pid int) (int, error) {
 	}
 	return p.Board, nil
 }
+
+func DeletePost(pid int) error {
+	p := &Post{Pid: pid}
+	_, err := db.Model(p).WherePK().Delete()
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -16,7 +16,7 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	router.InitRouters(e)
+	old.InitRouters(e)
 
 	e.Logger.Fatal(e.Start(config.C.App.Addr))
 

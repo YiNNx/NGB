@@ -40,9 +40,9 @@ func Close() {
 // CreateSchema creates database schema for User model
 func CreateSchema() error {
 	models := []interface{}{
-		(*Board)(nil), (*User)(nil), (*Post)(nil), (*Comment)(nil),
+		//(*Board)(nil), (*User)(nil), (*Post)(nil), (*Comment)(nil),
 		//(*FollowShip)(nil), (*Like)(nil), (*Manage)(nil), (*Join)(nil), (*Board)(nil), (*Comment)(nil),
-		//(*Join)(nil), (*Manage)(nil),
+		(*Apply)(nil), (*Notification)(nil), (*Message)(nil),
 	}
 	for _, model := range models {
 		err := db.Model(model).CreateTable(&orm.CreateTableOptions{

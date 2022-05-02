@@ -49,13 +49,54 @@ func GetBoard(c echo.Context) error {
 }
 
 func SetBoard(c echo.Context) error {
-	return nil
+	rec := new(boardInfo)
+	if err := c.Bind(rec); err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	b := &model.Board{
+		Name:   rec.Name,
+		Avatar: rec.Avatar,
+		Intro:  rec.Intro,
+	}
+	if err := model.InsertBoard(b); err != nil {
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	return util.SuccessRespond(c, http.StatusOK, b)
 }
 
 func UpdateBoard(c echo.Context) error {
-	return nil
+	bid, err := strconv.Atoi(c.Param("bid"))
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	rec := new(boardInfo)
+	if err := c.Bind(rec); err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	if err := validate.Struct(rec); err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	b := &model.Board{
+		Bid:    bid,
+		Name:   rec.Name,
+		Avatar: rec.Avatar,
+		Intro:  rec.Intro,
+	}
+	err = model.UpdateBoard(b)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	return util.SuccessRespond(c, http.StatusOK, nil)
 }
 
 func DeleteBoard(c echo.Context) error {
-	return nil
+	bid, err := strconv.Atoi(c.Param("bid"))
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	err = model.DeleteBoard(bid)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	return util.SuccessRespond(c, http.StatusOK, nil)
 }

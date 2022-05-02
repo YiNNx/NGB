@@ -79,7 +79,7 @@ func GetPost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	author, err := NewUerOutline(p.Author)
+	author, err := NewUserOutline(p.Author)
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
@@ -144,6 +144,9 @@ func CollectPost(c echo.Context) error {
 	if err := c.Bind(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
+	if err := validate.Struct(rec); err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
 
 	if rec.Status {
 		if err := model.InsertCollection(pid, uid); err != nil {
@@ -168,6 +171,9 @@ func LikePost(c echo.Context) error {
 
 	rec := new(receiveNewStatus)
 	if err := c.Bind(rec); err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	if err := validate.Struct(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
@@ -294,5 +300,13 @@ func paginate(c echo.Context) (int, int, error) {
 }
 
 func DeletePost(c echo.Context) error {
-	return nil
+	pid, err := strconv.Atoi(c.Param("pid"))
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	err = model.DeletePost(pid)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	return util.SuccessRespond(c, http.StatusOK, nil)
 }
