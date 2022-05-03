@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"ngb/util"
 	"os"
 )
 
@@ -68,7 +67,6 @@ func init() {
 
 	C = config
 
-	util.Logger.Info("Config " + configFile + " loaded.")
 	fmt.Println("Config " + configFile + " loaded.")
 
 }
