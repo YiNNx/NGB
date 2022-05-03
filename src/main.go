@@ -6,11 +6,16 @@ import (
 	"ngb/config"
 	"ngb/model"
 	"ngb/router"
+	"ngb/util"
 )
 
 func main() {
 	model.Connect()
 	defer model.Close()
+
+	util.InitLogger()
+
+	util.Logger.Info("提示信息")
 
 	e := echo.New()
 	e.Use(middleware.Logger())
