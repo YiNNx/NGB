@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"ngb/util"
 	"os"
 )
 
@@ -17,6 +18,7 @@ type Config struct {
 	App        app        `yaml:"app"`
 	Postgresql postgresql `yaml:"postgresql"`
 	Jwt        jwt        `yaml:"jwt"`
+	Log        log        `yaml:"log"`
 }
 
 type app struct {
@@ -35,20 +37,21 @@ type jwt struct {
 	Secret string `yaml:"secret"`
 }
 
+type log struct {
+	Path string `yaml:"path"`
+	File string `yaml:"file"`
+}
+
 func init() {
 	configFile := "default.yml"
 
-	// 如果有设置 ENV ，则使用ENV中的环境
 	if v, ok := os.LookupEnv("ENV"); ok {
 		configFile = v + ".yml"
 	}
 
-	// 读取配置文件
 	data, err := ioutil.ReadFile(fmt.Sprintf("./env/config/%s", configFile))
 
 	if err != nil {
-		//Logger.Println("Read config error!")
-		//Logger.Panic(err)
 		panic(err)
 		return
 	}
@@ -58,8 +61,6 @@ func init() {
 	err = yaml.Unmarshal(data, config)
 
 	if err != nil {
-		//Logger.Println("Unmarshal config error!")
-		//Logger.Panic(err)
 		fmt.Println("Unmarshal config error!")
 		panic(err)
 		return
@@ -67,7 +68,7 @@ func init() {
 
 	C = config
 
-	//Logger.Println("Config " + configFile + " loaded.")
+	util.Logger.Info("Config " + configFile + " loaded.")
 	fmt.Println("Config " + configFile + " loaded.")
 
 }

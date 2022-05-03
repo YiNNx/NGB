@@ -13,16 +13,12 @@ func main() {
 	model.Connect()
 	defer model.Close()
 
-	util.InitLogger()
-
-	util.Logger.Info("提示信息")
-
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
 	router.InitRouters(e)
 
+	util.Logger.Info("http server started")
 	e.Logger.Fatal(e.Start(config.C.App.Addr))
-
 }

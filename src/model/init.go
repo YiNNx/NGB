@@ -4,6 +4,7 @@ import (
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
 	"ngb/config"
+	"ngb/util"
 )
 
 var db *pg.DB
@@ -28,7 +29,7 @@ func Connect() *pg.DB {
 	if _, err := db.QueryOne(pg.Scan(&n), "SELECT 1"); err != nil {
 		panic(err)
 	}
-
+	util.Logger.Info("Postgresql connected")
 	return db
 }
 

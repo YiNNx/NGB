@@ -1,0 +1,9 @@
+{"file":"E:/Bingyan/NoviceTask/NGB/src/util/log.go:18","func":"ngb/util.init.0","level":"info","msg":"Logger 初始化成功！","time":"2022-05-04T00:08:40+08:00"}
+{"file":"E:/Bingyan/NoviceTask/NGB/src/model/init.go:32","func":"ngb/model.Connect","level":"info","msg":"Postgresql connected","time":"2022-05-04T00:08:40+08:00"}
+{"file":"E:/Bingyan/NoviceTask/NGB/src/main.go:16","func":"main.main","level":"info","msg":"提示信息","time":"2022-05-04T00:08:40+08:00"}
+{"file":"E:/Bingyan/NoviceTask/NGB/src/util/log.go:18","func":"ngb/util.init.0","level":"info","msg":"logger started","time":"2022-05-04T00:11:39+08:00"}
+{"file":"E:/Bingyan/NoviceTask/NGB/src/model/init.go:32","func":"ngb/model.Connect","level":"info","msg":"Postgresql connected","time":"2022-05-04T00:11:39+08:00"}
+{"file":"E:/Bingyan/NoviceTask/NGB/src/main.go:16","func":"main.main","level":"info","msg":"提示信息","time":"2022-05-04T00:11:39+08:00"}
+{"file":"E:/Bingyan/NoviceTask/NGB/src/util/log.go:18","func":"ngb/util.init.0","level":"info","msg":"logger started","time":"2022-05-04T00:19:44+08:00"}
+{"file":"E:/Bingyan/NoviceTask/NGB/src/model/init.go:32","func":"ngb/model.Connect","level":"info","msg":"Postgresql connected","time":"2022-05-04T00:19:44+08:00"}
+{"file":"E:/Bingyan/NoviceTask/NGB/src/util/log.go:42","func":"ngb/util.init.0","level":"info","msg":"logger started successfully","time":"2022-05-04T00:20:32+08:00"}

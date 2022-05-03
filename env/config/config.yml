@@ -10,3 +10,7 @@ postgresql:
 
 jwt:
   secret: ""
+
+log:
+  path: ""
+  file: ""

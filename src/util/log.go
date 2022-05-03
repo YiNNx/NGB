@@ -4,28 +4,34 @@ import (
 	"github.com/lestrrat/go-file-rotatelogs"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
+	"ngb/config"
 	"path"
 	"time"
 )
 
 var Logger *logrus.Logger
 
-func InitLogger() {
-	Logger := logrus.New()
+func init() {
+	Logger = getLogger()
+	Logger.Info("logger started")
+}
 
-	Logger.Formatter = new(logrus.JSONFormatter)
-	Logger.SetReportCaller(true)
-	Logger.SetLevel(logrus.DebugLevel)
+func getLogger() *logrus.Logger {
+	logger := logrus.New()
 
-	filePath := path.Join("log", "log-")
+	logger.Formatter = new(logrus.JSONFormatter)
+	logger.SetReportCaller(true)
+	logger.SetLevel(logrus.DebugLevel)
+
+	baseLogPath := path.Join(config.C.Log.Path, config.C.Log.File)
 	writer, err := rotatelogs.New(
-		filePath+".%Y-%m-%d-%H-%M",
-		rotatelogs.WithLinkName(filePath),
+		baseLogPath+"-%Y-%m-%d",
+		rotatelogs.WithLinkName(baseLogPath),
 		rotatelogs.WithMaxAge(7*24*time.Hour),
 		rotatelogs.WithRotationTime(24*time.Hour),
 	)
 	if err != nil {
-		Logger.Fatal(err)
+		logger.Fatal(err)
 	}
 
 	lfHook := lfshook.NewHook(lfshook.WriterMap{
@@ -37,7 +43,6 @@ func InitLogger() {
 		logrus.PanicLevel: writer,
 	}, &logrus.JSONFormatter{})
 
-	Logger.AddHook(lfHook)
-
-	Logger.Info("logger started successfully")
+	logger.AddHook(lfHook)
+	return logger
 }

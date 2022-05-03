@@ -358,6 +358,8 @@
   }
   ```
 
+
+
 ## LEVEL 2
 
 
@@ -468,6 +470,12 @@
 - #### 查看通知✔
 
   `GET /notification`
+
+- #### 查看未读通知✔
+
+  `GET /notification/new`
+
+### message
 
 - #### 私信✔
 
