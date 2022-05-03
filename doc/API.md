@@ -358,7 +358,7 @@
   }
   ```
 
-
+## LEVEL 2
 
 
 ### super_admin
@@ -465,6 +465,18 @@
 
 ### notification
 
-- #### 查看通知
+- #### 查看通知✔
 
   `GET /notification`
+
+- #### 私信✔
+
+  `POST /message?receiver=<uid>`
+
+  ```
+  {
+  	"content":""
+  }
+  ```
+
+  

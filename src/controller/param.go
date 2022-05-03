@@ -287,3 +287,14 @@ type responseAllAdmins struct {
 	Intro  string     `json:"intro"`
 	Admins []userInfo `json:"admins"`
 }
+
+type receiveMessage struct {
+	Content string `json:"content" validate:"required"`
+}
+
+type responseNotification struct {
+	Nid     int         `json:"nid"`
+	Type    int         `json:"type"`
+	Time    time.Time   `json:"time"`
+	Content interface{} `json:"content"`
+}

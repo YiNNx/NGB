@@ -1,11 +1,13 @@
 package controller
 
 import (
+	"errors"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"ngb/model"
 	"ngb/util"
+	"regexp"
 	"strconv"
 )
 
@@ -14,18 +16,18 @@ func NewPost(c echo.Context) error {
 	if err := c.Bind(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
-
 	if err := validate.Struct(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
-
+	author := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
 	bid, err := strconv.Atoi(c.Param("bid"))
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
+
 	p := &model.Post{
 		Board:   bid,
-		Author:  c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id,
+		Author:  author,
 		Tags:    rec.Tags,
 		Title:   rec.Title,
 		Content: rec.Content,
@@ -33,11 +35,50 @@ func NewPost(c echo.Context) error {
 	if err := model.InsertPost(p); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
+
+	users, err := GetUsersMentioned(rec.Content)
+	for i := range users {
+		if err := model.InsertNotification(model.TypeMentioned, users[i].Uid, p.Pid); err != nil {
+			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+		}
+	}
+
+	followers, err := model.GetFollowersOfUser(author);
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	for i := range followers {
+		if err := model.InsertNotification(model.TypeNewPost, followers[i].Uid, p.Pid); err != nil {
+			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+		}
+	}
+
 	res := &responseNewPost{
 		Pid:  p.Pid,
 		Time: p.Time,
 	}
 	return util.SuccessRespond(c, http.StatusOK, res)
+}
+
+// GetUsersMentioned 匹配在贴文中被提及的用户
+func GetUsersMentioned(content string) ([]model.User, error) {
+
+	var usernames []string
+
+	reg := regexp.MustCompile(`@(\S+)`)
+	if reg == nil {
+		return nil, errors.New("regexp err")
+	}
+	res := reg.FindAllStringSubmatch(content, -1)
+	for i := range res {
+		usernames = append(usernames, res[i][1])
+	}
+
+	users, err := model.GetUsersByUsernames(usernames)
+	if err != nil {
+		return nil, err
+	}
+	return users, err
 }
 
 func GetAllPosts(c echo.Context) error {
@@ -225,6 +266,10 @@ func CommentPost(c echo.Context) error {
 
 	err = model.InsertComment(comment)
 	if err != nil {
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+
+	if err := model.InsertNotification(model.TypeComment, p.Author, comment.Cid); err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 

@@ -134,3 +134,18 @@ func CheckUserId(uid int) error {
 	}
 	return nil
 }
+
+func GetUsersByUsernames(usernames []string) ([]User, error) {
+	if usernames != nil {
+		var users []User
+		err := db.Model(&users).Column("uid").
+			Where("username in (?)", pg.In(usernames)).
+			Select()
+		if err != nil {
+			return nil, err
+		}
+		return users, nil
+	} else {
+		return nil, nil
+	}
+}

@@ -290,3 +290,125 @@ func GetAdmins(c echo.Context) error {
 	}
 	return util.SuccessRespond(c, http.StatusOK, res)
 }
+
+func GetNewNotification(c echo.Context) error {
+	limit, offset, err := paginate(c)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+
+	noti, err := model.GetNotificationsByUid(uid, limit, offset)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	var res []responseNotification
+
+	for i := range noti {
+		if noti[i].Status == 1 {
+			continue
+		}
+		noti[i].Status = 1
+		err := model.UpdateNotificationStatus(&noti[i])
+		if err != nil {
+			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+		}
+
+		if noti[i].Type == 1 {
+			m, err := model.GetMessageByMid(noti[i].ContentId)
+			if err != nil {
+				return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+			}
+			res = append(res, responseNotification{
+				Nid:     noti[i].Nid,
+				Type:    noti[i].Type,
+				Time:    noti[i].Time,
+				Content: m,
+			})
+		} else if noti[i].Type == 2 {
+			m, err := model.GetCommentByCid(noti[i].ContentId)
+			if err != nil {
+				return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+			}
+			res = append(res, responseNotification{
+				Nid:     noti[i].Nid,
+				Type:    noti[i].Type,
+				Time:    noti[i].Time,
+				Content: m,
+			})
+		} else {
+			m, err := model.GetPostByPid(noti[i].ContentId)
+			if err != nil {
+				return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+			}
+			res = append(res, responseNotification{
+				Nid:     noti[i].Nid,
+				Type:    noti[i].Type,
+				Time:    noti[i].Time,
+				Content: m,
+			})
+		}
+	}
+
+	return util.SuccessRespond(c, http.StatusOK, res)
+}
+
+func GetNotification(c echo.Context) error {
+	limit, offset, err := paginate(c)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+
+	noti, err := model.GetNotificationsByUid(uid, limit, offset)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	var res []responseNotification
+
+	for i := range noti {
+		if noti[i].Status != 1 {
+			noti[i].Status = 1
+			err := model.UpdateNotificationStatus(&noti[i])
+			if err != nil {
+				return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+			}
+		}
+		if noti[i].Type == 1 {
+			m, err := model.GetMessageByMid(noti[i].ContentId)
+			if err != nil {
+				return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+			}
+			res = append(res, responseNotification{
+				Nid:     noti[i].Nid,
+				Type:    noti[i].Type,
+				Time:    noti[i].Time,
+				Content: m,
+			})
+		} else if noti[i].Type == 2 {
+			m, err := model.GetCommentByCid(noti[i].ContentId)
+			if err != nil {
+				return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+			}
+			res = append(res, responseNotification{
+				Nid:     noti[i].Nid,
+				Type:    noti[i].Type,
+				Time:    noti[i].Time,
+				Content: m,
+			})
+		} else {
+			m, err := model.GetPostByPid(noti[i].ContentId)
+			if err != nil {
+				return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+			}
+			res = append(res, responseNotification{
+				Nid:     noti[i].Nid,
+				Type:    noti[i].Type,
+				Time:    noti[i].Time,
+				Content: m,
+			})
+		}
+	}
+
+	return util.SuccessRespond(c, http.StatusOK, res)
+}
