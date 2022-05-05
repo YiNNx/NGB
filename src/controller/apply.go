@@ -11,8 +11,8 @@ import (
 )
 
 func SetBoardApply(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
 
@@ -31,7 +31,7 @@ func SetBoardApply(c echo.Context) error {
 		Reason: rec.Reason,
 	}
 	if err := model.InsertApply(apply); err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
@@ -39,8 +39,8 @@ func SetBoardApply(c echo.Context) error {
 }
 
 func SetAdminApply(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
 
@@ -59,7 +59,7 @@ func SetAdminApply(c echo.Context) error {
 		Reason: rec.Reason,
 	}
 	if err := model.InsertApply(apply); err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
@@ -67,12 +67,12 @@ func SetAdminApply(c echo.Context) error {
 }
 
 func GetBoardApply(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	ap, err := model.SelectBoardApplies()
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	var applies []responseBoardApply
@@ -95,12 +95,12 @@ func GetBoardApply(c echo.Context) error {
 }
 
 func GetAdminApply(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	ap, err := model.SelectAdminApplies()
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	var applies []responseAdminApply
@@ -130,8 +130,8 @@ func GetAdminApply(c echo.Context) error {
 }
 
 func PassApply(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	rec := new(receiveNewStatus)
 	if err := c.Bind(rec); err != nil {
@@ -148,7 +148,7 @@ func PassApply(c echo.Context) error {
 
 	apply, err := model.SelectApplyByApid(apid)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -160,7 +160,7 @@ func PassApply(c echo.Context) error {
 		apply.Status = 2
 		err := model.UpdateApplyStatus(apply)
 		if err != nil {
-			model.RollbackTx(trans)
+			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 		return util.SuccessRespond(c, http.StatusOK, nil)
@@ -168,7 +168,7 @@ func PassApply(c echo.Context) error {
 		apply.Status = 1
 		err := model.UpdateApplyStatus(apply)
 		if err != nil {
-			model.RollbackTx(trans)
+			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 	}
@@ -179,7 +179,7 @@ func PassApply(c echo.Context) error {
 		}
 		err := model.InsertBoard(b)
 		if err != nil {
-			model.RollbackTx(trans)
+			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 		return util.SuccessRespond(c, http.StatusOK, nil)
@@ -187,7 +187,7 @@ func PassApply(c echo.Context) error {
 
 		err := model.InsertManageShip(apply.Bid, apply.Uid)
 		if err != nil {
-			model.RollbackTx(trans)
+			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 		return util.SuccessRespond(c, http.StatusOK, nil)

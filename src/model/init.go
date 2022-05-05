@@ -8,7 +8,6 @@ import (
 )
 
 var db *pg.DB
-var tx *pg.Tx
 
 func init() {
 	// Register many to many model so ORM can better recognize m2m relation.
@@ -57,25 +56,36 @@ func CreateSchema() error {
 	return nil
 }
 
-type Trans struct {
+var tx *pg.Tx
+
+type Transaction struct {
 	Tx    *pg.Tx
 	abort bool
 }
 
-func BeginTx() *Trans {
+func BeginTx() *Transaction {
 	var err error
 	tx, err = db.Begin()
 	if err != nil {
 		util.Logger.Panic("tx-begin failed")
 	}
-	trans := &Trans{
+	trans := &Transaction{
 		Tx:    tx,
 		abort: false,
 	}
 	return trans
 }
 
-func CloseTx(trans *Trans) {
+func (trans *Transaction) Rollback() {
+	err := trans.Tx.Rollback()
+	if err != nil {
+		util.Logger.Panic("tx-close failed")
+	}
+	trans.abort = true
+	tx = nil
+}
+
+func (trans *Transaction) Close() {
 	if trans.abort == false {
 		err := trans.Tx.Commit()
 		if err != nil {
@@ -86,14 +96,5 @@ func CloseTx(trans *Trans) {
 	if err != nil {
 		util.Logger.Panic("tx-close failed")
 	}
-	tx = nil
-}
-
-func RollbackTx(trans *Trans) {
-	err := trans.Tx.Rollback()
-	if err != nil {
-		util.Logger.Panic("tx-close failed")
-	}
-	trans.abort = true
 	tx = nil
 }

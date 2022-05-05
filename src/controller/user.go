@@ -11,8 +11,8 @@ import (
 )
 
 func SignUP(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	rec := new(receiveUserAccount)
 	if err := c.Bind(rec); err != nil {
@@ -34,7 +34,7 @@ func SignUP(c echo.Context) error {
 		PwdHash:  string(pwdHash),
 	}
 	if err := model.InsertUser(u); err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 	}
 
@@ -46,15 +46,15 @@ func SignUP(c echo.Context) error {
 }
 
 func LogIn(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	email := c.QueryParam("email")
 	pwd := c.QueryParam("pwd")
 
 	u, err := model.ValidateUser(email, pwd)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 	}
 
@@ -67,8 +67,8 @@ func LogIn(c echo.Context) error {
 }
 
 func GetUserProfile(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	uid, err := strconv.Atoi(c.Param("uid"))
 	if err != nil {
@@ -76,12 +76,12 @@ func GetUserProfile(c echo.Context) error {
 	}
 	u, err := model.GetUserByUid(uid)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 	}
 	p, err := model.GetPostsByUid(uid)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	posts, err := NewPostOutlines(p)
@@ -91,29 +91,29 @@ func GetUserProfile(c echo.Context) error {
 
 	fr, err := model.GetFollowersOfUser(uid)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	followers := NewUserOutlines(fr)
 	fi, err := model.GetFollowingOfUser(uid)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	following := NewUserOutlines(fi)
 	l, err := model.GetLikesOfUser(uid)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	likes, err := NewPostOutlines(l)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	co, err := model.GetCollectionsOfUser(uid)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	collections, err := NewPostOutlines(co)
@@ -122,7 +122,7 @@ func GetUserProfile(c echo.Context) error {
 	}
 	b, err := model.GetBoardsOfUser(uid)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	boards := NewBoardOutlines(b)
@@ -144,14 +144,14 @@ func GetUserProfile(c echo.Context) error {
 }
 
 func GetUserAccount(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
 
 	u, err := model.GetUserByUid(uid)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
@@ -169,8 +169,8 @@ func GetUserAccount(c echo.Context) error {
 }
 
 func ChangeUserInfo(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
 
@@ -195,20 +195,20 @@ func ChangeUserInfo(c echo.Context) error {
 	}
 	err := model.UpdateUser(u)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	return util.SuccessRespond(c, http.StatusOK, nil)
 }
 
 func ChangeUserPwd(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
 	u, err := model.GetUserByUid(uid)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -227,7 +227,7 @@ func ChangeUserPwd(c echo.Context) error {
 
 	_, err = model.ValidateUser(change.Email, change.PwdOld)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 	}
 
@@ -238,7 +238,7 @@ func ChangeUserPwd(c echo.Context) error {
 
 	err = model.ChangePwd(string(pwdHashNew), uid)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -246,8 +246,8 @@ func ChangeUserPwd(c echo.Context) error {
 }
 
 func FollowUser(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	followee, err := strconv.Atoi(c.Param("uid"))
 	if err != nil {
@@ -267,12 +267,12 @@ func FollowUser(c echo.Context) error {
 	fmt.Println(rec.Status)
 	if rec.Status {
 		if err := model.InsertFollowShip(followee, follower); err != nil {
-			model.RollbackTx(trans)
+			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 	} else {
 		if err := model.DeleteFollowShip(followee, follower); err != nil {
-			model.RollbackTx(trans)
+			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 	}
@@ -281,12 +281,12 @@ func FollowUser(c echo.Context) error {
 }
 
 func GetAllUsers(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	users, err := model.SelectAllUser()
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -295,8 +295,8 @@ func GetAllUsers(c echo.Context) error {
 }
 
 func DeleteUser(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	uid, err := strconv.Atoi(c.Param("uid"))
 	if err != nil {
@@ -316,19 +316,19 @@ func DeleteUser(c echo.Context) error {
 }
 
 func GetAdmins(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	boards, err := model.SelectAllBoards()
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 	res := make([]responseAllAdmins, len(boards))
 	for i := range boards {
 		users, err := model.GetManagersOfBoard(boards[i].Bid)
 		if err != nil {
-			model.RollbackTx(trans)
+			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 		res[i].Admins = NewUserInfos(users)
@@ -341,8 +341,8 @@ func GetAdmins(c echo.Context) error {
 }
 
 func GetNewNotification(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	limit, offset, err := paginate(c)
 	if err != nil {
@@ -352,7 +352,7 @@ func GetNewNotification(c echo.Context) error {
 
 	noti, err := model.GetNotificationsByUid(uid, limit, offset)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	var res []responseNotification
@@ -364,14 +364,14 @@ func GetNewNotification(c echo.Context) error {
 		noti[i].Status = 1
 		err := model.UpdateNotificationStatus(&noti[i])
 		if err != nil {
-			model.RollbackTx(trans)
+			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 
 		if noti[i].Type == 1 {
 			m, err := model.GetMessageByMid(noti[i].ContentId)
 			if err != nil {
-				model.RollbackTx(trans)
+				tx.Rollback()
 				return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 			}
 			res = append(res, responseNotification{
@@ -383,7 +383,7 @@ func GetNewNotification(c echo.Context) error {
 		} else if noti[i].Type == 2 {
 			m, err := model.GetCommentByCid(noti[i].ContentId)
 			if err != nil {
-				model.RollbackTx(trans)
+				tx.Rollback()
 				return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 			}
 			res = append(res, responseNotification{
@@ -395,7 +395,7 @@ func GetNewNotification(c echo.Context) error {
 		} else {
 			m, err := model.GetPostByPid(noti[i].ContentId)
 			if err != nil {
-				model.RollbackTx(trans)
+				tx.Rollback()
 				return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 			}
 			res = append(res, responseNotification{
@@ -411,8 +411,8 @@ func GetNewNotification(c echo.Context) error {
 }
 
 func GetNotification(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	limit, offset, err := paginate(c)
 	if err != nil {
@@ -422,7 +422,7 @@ func GetNotification(c echo.Context) error {
 
 	noti, err := model.GetNotificationsByUid(uid, limit, offset)
 	if err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	var res []responseNotification
@@ -432,14 +432,14 @@ func GetNotification(c echo.Context) error {
 			noti[i].Status = 1
 			err := model.UpdateNotificationStatus(&noti[i])
 			if err != nil {
-				model.RollbackTx(trans)
+				tx.Rollback()
 				return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 			}
 		}
 		if noti[i].Type == 1 {
 			m, err := model.GetMessageByMid(noti[i].ContentId)
 			if err != nil {
-				model.RollbackTx(trans)
+				tx.Rollback()
 				return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 			}
 			res = append(res, responseNotification{
@@ -451,7 +451,7 @@ func GetNotification(c echo.Context) error {
 		} else if noti[i].Type == 2 {
 			m, err := model.GetCommentByCid(noti[i].ContentId)
 			if err != nil {
-				model.RollbackTx(trans)
+				tx.Rollback()
 				return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 			}
 			res = append(res, responseNotification{
@@ -463,7 +463,7 @@ func GetNotification(c echo.Context) error {
 		} else {
 			m, err := model.GetPostByPid(noti[i].ContentId)
 			if err != nil {
-				model.RollbackTx(trans)
+				tx.Rollback()
 				return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 			}
 			res = append(res, responseNotification{

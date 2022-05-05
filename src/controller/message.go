@@ -10,14 +10,14 @@ import (
 )
 
 func SendMessage(c echo.Context) error {
-	trans := model.BeginTx()
-	defer model.CloseTx(trans)
+	tx := model.BeginTx()
+	defer tx.Close()
 
 	receiver, err := strconv.Atoi(c.QueryParam("receiver"))
-	sender := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
+	sender := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
 	rec := new(receiveMessage)
 	if err := c.Bind(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -32,12 +32,12 @@ func SendMessage(c echo.Context) error {
 		Content:  rec.Content,
 	}
 	if err := model.InsertMessage(m); err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
 	if err := model.InsertNotification(model.TypeMessage, receiver, m.Mid); err != nil {
-		model.RollbackTx(trans)
+		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
