@@ -66,7 +66,4 @@ func init() {
 	}
 
 	C = config
-
-	fmt.Println("Config " + configFile + " loaded.")
-
 }

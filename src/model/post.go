@@ -22,7 +22,7 @@ type Post struct {
 }
 
 func InsertPost(p *Post) error {
-	_, err := db.Model(p).Insert()
+	_, err := tx.Model(p).Insert()
 	if err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func InsertPost(p *Post) error {
 
 func GetPostByPid(pid int) (*Post, error) {
 	p := &Post{Pid: pid}
-	err := db.Model(p).WherePK().Select()
+	err := tx.Model(p).WherePK().Select()
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func GetPostByPid(pid int) (*Post, error) {
 
 func GetPostsByTag(tag string, limit int, offset int) ([]Post, error) {
 	var posts []Post
-	err := db.Model(&posts).
+	err := tx.Model(&posts).
 		Where("tags::jsonb ?& array['" + tag + "']").
 		Limit(limit).Offset(offset).Select()
 	if err != nil {
@@ -52,7 +52,7 @@ func GetPostsByTag(tag string, limit int, offset int) ([]Post, error) {
 func GetPostsByPids(pids []int) ([]Post, error) {
 	if pids != nil {
 		var posts []Post
-		err := db.Model(&posts).
+		err := tx.Model(&posts).
 			Where("pid in (?)", pg.In(pids)).
 			Select()
 		if err != nil {
@@ -66,7 +66,7 @@ func GetPostsByPids(pids []int) ([]Post, error) {
 
 func GetPostsByUid(uid int) ([]Post, error) {
 	var posts []Post
-	err := db.Model(&posts).
+	err := tx.Model(&posts).
 		Where("author = ?", uid).
 		Select()
 	if err != nil {
@@ -77,7 +77,7 @@ func GetPostsByUid(uid int) ([]Post, error) {
 
 func GetPostsByBoard(bid int, limit int, offset int) ([]Post, error) {
 	var posts []Post
-	err := db.Model(&posts).
+	err := tx.Model(&posts).
 		Where("board = ?", bid).
 		Limit(limit).Offset(offset).Select()
 	if err != nil {
@@ -88,7 +88,7 @@ func GetPostsByBoard(bid int, limit int, offset int) ([]Post, error) {
 
 func SelectAllPosts(limit int, offset int) ([]Post, error) {
 	var posts []Post
-	err := db.Model(&posts).Limit(limit).Offset(offset).Select()
+	err := tx.Model(&posts).Limit(limit).Offset(offset).Select()
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func SelectAllPosts(limit int, offset int) ([]Post, error) {
 
 func CheckPostId(pid int) error {
 	p := &Post{Pid: pid}
-	err := db.Model(p).WherePK().Select()
+	err := tx.Model(p).WherePK().Select()
 	if err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func CheckPostId(pid int) error {
 
 func GetBoardByPost(pid int) (int, error) {
 	p := &Post{Pid: pid}
-	err := db.Model(p).WherePK().Select()
+	err := tx.Model(p).WherePK().Select()
 	if err != nil {
 		return 0, err
 	}
@@ -115,7 +115,7 @@ func GetBoardByPost(pid int) (int, error) {
 
 func DeletePost(pid int) error {
 	p := &Post{Pid: pid}
-	_, err := db.Model(p).WherePK().Delete()
+	_, err := tx.Model(p).WherePK().Delete()
 	if err != nil {
 		return err
 	}

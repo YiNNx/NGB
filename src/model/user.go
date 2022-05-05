@@ -27,20 +27,8 @@ type User struct {
 }
 
 func InsertUser(u *User) error {
-	tx, err := db.Begin()
+	_, err := tx.Model(u).Insert()
 	if err != nil {
-		return err
-	}
-	defer tx.Close()
-
-	_, err = tx.Model(u).Insert()
-	if err != nil {
-		if err2 := tx.Rollback(); err2 != nil {
-			return err
-		}
-		return err
-	}
-	if err := tx.Commit(); err != nil {
 		return err
 	}
 	return nil
@@ -49,7 +37,7 @@ func InsertUser(u *User) error {
 // Validate user's email & password
 func ValidateUser(email string, pwd string) (*User, error) {
 	u := new(User)
-	if err := db.Model(u).Where("email = ?", email).Select(); err != nil {
+	if err := tx.Model(u).Where("email = ?", email).Select(); err != nil {
 		return nil, err
 	}
 	err := util.ValidatePwd(pwd, u.PwdHash)
@@ -61,7 +49,7 @@ func ValidateUser(email string, pwd string) (*User, error) {
 
 // Update user's info by id
 func UpdateUser(u *User) error {
-	_, err := db.Model(u).
+	_, err := tx.Model(u).
 		Column("email", "username", "phone", "avatar", "nickname", "gender", "intro").
 		Where("uid = ?", u.Uid).
 		Update()
@@ -73,7 +61,7 @@ func UpdateUser(u *User) error {
 
 func ChangePwd(pwdHashNew string, uid int) error {
 	u := new(User)
-	_, err := db.Model(u).
+	_, err := tx.Model(u).
 		Set("pwd_hash = ?", pwdHashNew).
 		Where("uid = ?", uid).
 		Update()
@@ -85,7 +73,7 @@ func ChangePwd(pwdHashNew string, uid int) error {
 
 func GetUserByUid(uid int) (*User, error) {
 	u := &User{Uid: uid}
-	err := db.Model(u).WherePK().Select()
+	err := tx.Model(u).WherePK().Select()
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +83,7 @@ func GetUserByUid(uid int) (*User, error) {
 func GetUsersByUids(uids []int) ([]User, error) {
 	if uids != nil {
 		var users []User
-		err := db.Model(&users).
+		err := tx.Model(&users).
 			Where("uid in (?)", pg.In(uids)).
 			Select()
 		if err != nil {
@@ -110,7 +98,7 @@ func GetUsersByUids(uids []int) ([]User, error) {
 // SelectAllUser returns all users' info
 func SelectAllUser() ([]User, error) {
 	var users []User
-	err := db.Model(&users).Select()
+	err := tx.Model(&users).Select()
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +107,7 @@ func SelectAllUser() ([]User, error) {
 
 func DeleteUser(uid int) error {
 	u := &User{Uid: uid}
-	_, err := db.Model(u).WherePK().Delete()
+	_, err := tx.Model(u).WherePK().Delete()
 	if err != nil {
 		return err
 	}
@@ -128,7 +116,7 @@ func DeleteUser(uid int) error {
 
 func CheckUserId(uid int) error {
 	u := &User{Uid: uid}
-	err := db.Model(u).WherePK().Select()
+	err := tx.Model(u).WherePK().Select()
 	if err != nil {
 		return err
 	}
@@ -138,7 +126,7 @@ func CheckUserId(uid int) error {
 func GetUsersByUsernames(usernames []string) ([]User, error) {
 	if usernames != nil {
 		var users []User
-		err := db.Model(&users).Column("uid").
+		err := tx.Model(&users).Column("uid").
 			Where("username in (?)", pg.In(usernames)).
 			Select()
 		if err != nil {

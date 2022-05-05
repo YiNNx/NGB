@@ -1,6 +1,8 @@
 package util
 
-import "github.com/labstack/echo/v4"
+import (
+	"github.com/labstack/echo/v4"
+)
 
 type Response struct {
 	Success bool        `json:"success"`
@@ -9,6 +11,7 @@ type Response struct {
 }
 
 func ErrorResponse(c echo.Context, code int, msg string) error {
+	Logger.Info("http-response:" + msg)
 	return c.JSON(
 		code,
 		Response{

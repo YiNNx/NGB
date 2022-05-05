@@ -12,6 +12,9 @@ import (
 )
 
 func NewPost(c echo.Context) error {
+	trans := model.BeginTx()
+	defer model.CloseTx(trans)
+
 	rec := new(receiveNewPost)
 	if err := c.Bind(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -33,22 +36,28 @@ func NewPost(c echo.Context) error {
 		Content: rec.Content,
 	}
 	if err := model.InsertPost(p); err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
 	users, err := GetUsersMentioned(rec.Content)
 	for i := range users {
 		if err := model.InsertNotification(model.TypeMentioned, users[i].Uid, p.Pid); err != nil {
+			model.RollbackTx(trans)
+			util.Logger.Info("http-response:" + err.Error())
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 	}
 
-	followers, err := model.GetFollowersOfUser(author);
+	followers, err := model.GetFollowersOfUser(author)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	for i := range followers {
 		if err := model.InsertNotification(model.TypeNewPost, followers[i].Uid, p.Pid); err != nil {
+			model.RollbackTx(trans)
+			util.Logger.Info("http-response:" + err.Error())
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 	}
@@ -62,7 +71,6 @@ func NewPost(c echo.Context) error {
 
 // GetUsersMentioned 匹配在贴文中被提及的用户
 func GetUsersMentioned(content string) ([]model.User, error) {
-
 	var usernames []string
 
 	reg := regexp.MustCompile(`@(\S+)`)
@@ -82,12 +90,16 @@ func GetUsersMentioned(content string) ([]model.User, error) {
 }
 
 func GetAllPosts(c echo.Context) error {
+	trans := model.BeginTx()
+	defer model.CloseTx(trans)
+
 	limit, offset, err := paginate(c)
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 	posts, err := model.SelectAllPosts(limit, offset)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -100,6 +112,9 @@ func GetAllPosts(c echo.Context) error {
 }
 
 func GetPost(c echo.Context) error {
+	trans := model.BeginTx()
+	defer model.CloseTx(trans)
+
 	pid, err := strconv.Atoi(c.Param("pid"))
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -107,16 +122,19 @@ func GetPost(c echo.Context) error {
 
 	p, err := model.GetPostByPid(pid)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
 	likesCount, err := model.GetLikesCountOfPost(pid)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
 	commentsCount, err := model.GetCommentsCountOfPost(pid)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -132,6 +150,7 @@ func GetPost(c echo.Context) error {
 
 	co, err := model.GetCommentsByPid(pid)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -156,6 +175,9 @@ func GetPost(c echo.Context) error {
 }
 
 func GetPostsByTag(c echo.Context) error {
+	trans := model.BeginTx()
+	defer model.CloseTx(trans)
+
 	limit, offset, err := paginate(c)
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -163,6 +185,7 @@ func GetPostsByTag(c echo.Context) error {
 	tag := c.Param("tag")
 	posts, err := model.GetPostsByTag(tag, limit, offset)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -175,6 +198,9 @@ func GetPostsByTag(c echo.Context) error {
 }
 
 func CollectPost(c echo.Context) error {
+	trans := model.BeginTx()
+	defer model.CloseTx(trans)
+
 	pid, err := strconv.Atoi(c.Param("pid"))
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -191,10 +217,14 @@ func CollectPost(c echo.Context) error {
 
 	if rec.Status {
 		if err := model.InsertCollection(pid, uid); err != nil {
+			model.RollbackTx(trans)
+			util.Logger.Info("http-response:" + err.Error())
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 	} else {
 		if err := model.DeleteCollection(pid, uid); err != nil {
+			model.RollbackTx(trans)
+			util.Logger.Info("http-response:" + err.Error())
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 	}
@@ -203,6 +233,9 @@ func CollectPost(c echo.Context) error {
 }
 
 func LikePost(c echo.Context) error {
+	trans := model.BeginTx()
+	defer model.CloseTx(trans)
+
 	pid, err := strconv.Atoi(c.Param("pid"))
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -220,11 +253,13 @@ func LikePost(c echo.Context) error {
 
 	if rec.Status {
 		if err := model.InsertLike(pid, uid); err != nil {
+			model.RollbackTx(trans)
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 		return util.SuccessRespond(c, http.StatusOK, nil)
 	} else {
 		if err := model.DeleteLike(pid, uid); err != nil {
+			model.RollbackTx(trans)
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 		return util.SuccessRespond(c, http.StatusOK, nil)
@@ -232,6 +267,9 @@ func LikePost(c echo.Context) error {
 }
 
 func CommentPost(c echo.Context) error {
+	trans := model.BeginTx()
+	defer model.CloseTx(trans)
+
 	rec := new(receiveCommentPost)
 	if err := c.Bind(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -248,6 +286,7 @@ func CommentPost(c echo.Context) error {
 
 	p, err := model.GetPostByPid(pid)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -266,10 +305,12 @@ func CommentPost(c echo.Context) error {
 
 	err = model.InsertComment(comment)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
 	if err := model.InsertNotification(model.TypeComment, p.Author, comment.Cid); err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -277,6 +318,9 @@ func CommentPost(c echo.Context) error {
 }
 
 func SubCommentPost(c echo.Context) error {
+	trans := model.BeginTx()
+	defer model.CloseTx(trans)
+
 	rec := new(receiveSubCommentPost)
 	if err := c.Bind(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -298,6 +342,7 @@ func SubCommentPost(c echo.Context) error {
 
 	p, err := model.GetPostByPid(pid)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -318,6 +363,7 @@ func SubCommentPost(c echo.Context) error {
 
 	err = model.InsertComment(comment)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -325,6 +371,9 @@ func SubCommentPost(c echo.Context) error {
 }
 
 func paginate(c echo.Context) (int, int, error) {
+	trans := model.BeginTx()
+	defer model.CloseTx(trans)
+
 	a, p := c.QueryParam("amount"), c.QueryParam("page")
 	if a == "" {
 		a = "10"
@@ -345,12 +394,16 @@ func paginate(c echo.Context) (int, int, error) {
 }
 
 func DeletePost(c echo.Context) error {
+	trans := model.BeginTx()
+	defer model.CloseTx(trans)
+
 	pid, err := strconv.Atoi(c.Param("pid"))
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 	err = model.DeletePost(pid)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	return util.SuccessRespond(c, http.StatusOK, nil)

@@ -19,14 +19,14 @@ type Comment struct {
 }
 
 func InsertComment(c *Comment) error {
-	if _, err := db.Model(c).Insert(); err != nil {
+	if _, err := tx.Model(c).Insert(); err != nil {
 		return err
 	}
 	return nil
 }
 
 func GetCommentsCountOfPost(pid int) (int, error) {
-	count, err := db.Model((*Comment)(nil)).Where("post = ?", pid).Count()
+	count, err := tx.Model((*Comment)(nil)).Where("post = ?", pid).Count()
 	if err != nil {
 		return 0, err
 	}
@@ -35,7 +35,7 @@ func GetCommentsCountOfPost(pid int) (int, error) {
 
 func GetCommentByCid(cid int) (*Comment, error) {
 	c := &Comment{Cid: cid}
-	err := db.Model(c).WherePK().Select()
+	err := tx.Model(c).WherePK().Select()
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func GetCommentByCid(cid int) (*Comment, error) {
 
 func GetCommentsByPid(pid int) ([]Comment, error) {
 	var comments []Comment
-	err := db.Model(&comments).
+	err := tx.Model(&comments).
 		Where("post = ?", pid).
 		Select()
 	if err != nil {
@@ -55,7 +55,7 @@ func GetCommentsByPid(pid int) ([]Comment, error) {
 
 func CheckCommentId(cid int) error {
 	c := &Comment{Cid: cid}
-	err := db.Model(c).WherePK().Select()
+	err := tx.Model(c).WherePK().Select()
 	if err != nil {
 		return err
 	}

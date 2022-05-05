@@ -11,7 +11,7 @@ type Like struct {
 
 func InsertLike(pid int, uid int) error {
 	var li []Like
-	if db.Model(&li).Where("user_uid = ?", uid).Where("post_pid = ?", pid).Select(); li != nil {
+	if tx.Model(&li).Where("user_uid = ?", uid).Where("post_pid = ?", pid).Select(); li != nil {
 		return errors.New("already liked")
 	}
 
@@ -27,7 +27,7 @@ func InsertLike(pid int, uid int) error {
 		UserUid: uid,
 	}
 
-	_, err := db.Model(l).Insert()
+	_, err := tx.Model(l).Insert()
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func InsertLike(pid int, uid int) error {
 
 func DeleteLike(postPid int, userUid int) error {
 	like := &Like{}
-	_, err := db.Model(like).Where("post_pid = ?", postPid).Where("user_uid = ?", userUid).Delete()
+	_, err := tx.Model(like).Where("post_pid = ?", postPid).Where("user_uid = ?", userUid).Delete()
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func DeleteLike(postPid int, userUid int) error {
 
 func GetLikesOfUser(uid int) ([]Post, error) {
 	var user User
-	err := db.Model(&user).Relation("Likes").Where("uid = ?", uid).Select()
+	err := tx.Model(&user).Relation("Likes").Where("uid = ?", uid).Select()
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func GetLikesOfUser(uid int) ([]Post, error) {
 
 func GetLikesOfPost(pid int) ([]User, error) {
 	var post Post
-	err := db.Model(&post).Relation("Likes").Where("post_pid = ?", pid).Select()
+	err := tx.Model(&post).Relation("Likes").Where("post_pid = ?", pid).Select()
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func GetLikesOfPost(pid int) ([]User, error) {
 }
 
 func GetLikesCountOfPost(pid int) (int, error) {
-	count, err := db.Model((*Like)(nil)).Where("post_pid = ?", pid).Count()
+	count, err := tx.Model((*Like)(nil)).Where("post_pid = ?", pid).Count()
 	if err != nil {
 		return 0, err
 	}
@@ -79,7 +79,7 @@ type Collection struct {
 
 func InsertCollection(pid int, uid int) error {
 	var co []Collection
-	if db.Model(&co).Where("user_uid = ?", uid).Where("post_pid = ?", pid).Select(); co != nil {
+	if tx.Model(&co).Where("user_uid = ?", uid).Where("post_pid = ?", pid).Select(); co != nil {
 		return errors.New("already collected")
 	}
 
@@ -93,7 +93,7 @@ func InsertCollection(pid int, uid int) error {
 		PostPid: pid,
 		UserUid: uid,
 	}
-	_, err := db.Model(f).Insert()
+	_, err := tx.Model(f).Insert()
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func InsertCollection(pid int, uid int) error {
 
 func DeleteCollection(postPid int, userUid int) error {
 	collection := &Collection{}
-	_, err := db.Model(collection).Where("post_pid = ?", postPid).Where("user_uid = ?", userUid).Delete()
+	_, err := tx.Model(collection).Where("post_pid = ?", postPid).Where("user_uid = ?", userUid).Delete()
 	if err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ func DeleteCollection(postPid int, userUid int) error {
 
 func GetCollectionsOfUser(uid int) ([]Post, error) {
 	var user User
-	err := db.Model(&user).Relation("Collections").Where("uid = ?", uid).Select()
+	err := tx.Model(&user).Relation("Collections").Where("uid = ?", uid).Select()
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func GetCollectionsOfUser(uid int) ([]Post, error) {
 
 func GetCollectionsOfPost(pid int) ([]User, error) {
 	var post Post
-	err := db.Model(&post).Relation("Collections").Where("pid = ?", pid).Select()
+	err := tx.Model(&post).Relation("Collections").Where("pid = ?", pid).Select()
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ type JoinShip struct {
 
 func InsertJoinShip(bid int, uid int) error {
 	var jo []JoinShip
-	if db.Model(&jo).Where("uid = ?", uid).Where("uid = ?", uid).Select(); jo != nil {
+	if tx.Model(&jo).Where("uid = ?", uid).Where("uid = ?", uid).Select(); jo != nil {
 		return errors.New("already liked")
 	}
 
@@ -150,7 +150,7 @@ func InsertJoinShip(bid int, uid int) error {
 		Bid: bid,
 		Uid: uid,
 	}
-	_, err := db.Model(f).Insert()
+	_, err := tx.Model(f).Insert()
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func InsertJoinShip(bid int, uid int) error {
 
 func DeleteJoinShip(bid int, uid int) error {
 	joinShip := &JoinShip{}
-	_, err := db.Model(joinShip).Where("bid = ?", bid).Where("uid = ?", uid).Delete()
+	_, err := tx.Model(joinShip).Where("bid = ?", bid).Where("uid = ?", uid).Delete()
 	if err != nil {
 		return err
 	}
@@ -168,7 +168,7 @@ func DeleteJoinShip(bid int, uid int) error {
 
 func GetBoardsOfUser(uid int) ([]Board, error) {
 	var joins []JoinShip
-	if err := db.Model(&joins).Where("uid = ?", uid).Select(); err != nil {
+	if err := tx.Model(&joins).Where("uid = ?", uid).Select(); err != nil {
 		return nil, err
 	}
 	var bids []int
@@ -184,7 +184,7 @@ func GetBoardsOfUser(uid int) ([]Board, error) {
 
 func GetMembersOfBoard(bid int) ([]User, error) {
 	var joins []JoinShip
-	if err := db.Model(&joins).Where("bid = ?", bid).Select(); err != nil {
+	if err := tx.Model(&joins).Where("bid = ?", bid).Select(); err != nil {
 		return nil, err
 	}
 	var uids []int
@@ -207,7 +207,7 @@ type ManageShip struct {
 
 func InsertManageShip(bid int, uid int) error {
 	var fo []ManageShip
-	if db.Model(&fo).Where("uid = ?", uid).Where("bid = ?", bid).Select(); fo != nil {
+	if tx.Model(&fo).Where("uid = ?", uid).Where("bid = ?", bid).Select(); fo != nil {
 		return errors.New("already managed")
 	}
 
@@ -222,7 +222,7 @@ func InsertManageShip(bid int, uid int) error {
 		Bid: bid,
 		Uid: uid,
 	}
-	_, err := db.Model(f).Insert()
+	_, err := tx.Model(f).Insert()
 	if err != nil {
 		return err
 	}
@@ -231,7 +231,7 @@ func InsertManageShip(bid int, uid int) error {
 
 func GetBoardsMngOfUser(uid int) ([]Board, error) {
 	var user User
-	err := db.Model(&user).Relation("Manages").Where("uid = ?", uid).Select()
+	err := tx.Model(&user).Relation("Manages").Where("uid = ?", uid).Select()
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +240,7 @@ func GetBoardsMngOfUser(uid int) ([]Board, error) {
 
 func GetManagersOfBoard(bid int) ([]User, error) {
 	var ms []ManageShip
-	if err := db.Model(&ms).Where("bid = ?", bid).Select(); err != nil {
+	if err := tx.Model(&ms).Where("bid = ?", bid).Select(); err != nil {
 		return nil, err
 	}
 	var uids []int
@@ -256,7 +256,7 @@ func GetManagersOfBoard(bid int) ([]User, error) {
 
 func CheckAdmin(bid int, uid int) (bool, error) {
 	m := new(ManageShip)
-	if err := db.Model(m).Where("bid = ?", bid).Where("uid = ?", uid).Select(); err != nil {
+	if err := tx.Model(m).Where("bid = ?", bid).Where("uid = ?", uid).Select(); err != nil {
 		return false, err
 	}
 	if m == nil {
@@ -282,7 +282,7 @@ func InsertFollowShip(followee int, follower int) error {
 	}
 
 	var fo []FollowShip
-	if db.Model(&fo).Where("followee = ?", followee).Where("follower = ?", follower).Select(); fo != nil {
+	if tx.Model(&fo).Where("followee = ?", followee).Where("follower = ?", follower).Select(); fo != nil {
 		return errors.New("already followed")
 	}
 
@@ -291,7 +291,7 @@ func InsertFollowShip(followee int, follower int) error {
 		Follower: follower,
 	}
 
-	_, err := db.Model(f).Insert()
+	_, err := tx.Model(f).Insert()
 	if err != nil {
 		return err
 	}
@@ -300,7 +300,7 @@ func InsertFollowShip(followee int, follower int) error {
 
 func DeleteFollowShip(followee int, follower int) error {
 	followShip := &FollowShip{}
-	_, err := db.Model(followShip).Where("follower = ?", follower).Where("followee = ?", followee).Delete()
+	_, err := tx.Model(followShip).Where("follower = ?", follower).Where("followee = ?", followee).Delete()
 	if err != nil {
 		return err
 	}
@@ -309,7 +309,7 @@ func DeleteFollowShip(followee int, follower int) error {
 
 func GetFollowingOfUser(uid int) ([]User, error) {
 	var follow []FollowShip
-	if err := db.Model(&follow).Where("follower = ?", uid).Select(); err != nil {
+	if err := tx.Model(&follow).Where("follower = ?", uid).Select(); err != nil {
 		return nil, err
 	}
 	var uids []int
@@ -325,7 +325,7 @@ func GetFollowingOfUser(uid int) ([]User, error) {
 
 func GetFollowersOfUser(uid int) ([]User, error) {
 	var follow []FollowShip
-	if err := db.Model(&follow).Where("followee = ?", uid).Select(); err != nil {
+	if err := tx.Model(&follow).Where("followee = ?", uid).Select(); err != nil {
 		return nil, err
 	}
 	var uids []int

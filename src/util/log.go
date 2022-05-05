@@ -1,11 +1,15 @@
 package util
 
 import (
+	"fmt"
+	nested "github.com/antonfisher/nested-logrus-formatter"
 	"github.com/lestrrat/go-file-rotatelogs"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
 	"ngb/config"
 	"path"
+	"path/filepath"
+	"runtime"
 	"time"
 )
 
@@ -19,8 +23,15 @@ func init() {
 func getLogger() *logrus.Logger {
 	logger := logrus.New()
 
-	logger.Formatter = new(logrus.JSONFormatter)
+	//stdFormatter := &prefixed.TextFormatter{
+	//	FullTimestamp:   true,
+	//	TimestampFormat: "2006-01-02.15:04:05.000000",
+	//	ForceFormatting: true,
+	//	ForceColors:     true,
+	//	DisableColors:   false,
+	//}
 	logger.SetReportCaller(true)
+	logger.SetFormatter(formatter())
 	logger.SetLevel(logrus.DebugLevel)
 
 	baseLogPath := path.Join(config.C.Log.Path, config.C.Log.File)
@@ -45,4 +56,22 @@ func getLogger() *logrus.Logger {
 
 	logger.AddHook(lfHook)
 	return logger
+}
+
+func formatter() *nested.Formatter {
+	fmtter := &nested.Formatter{
+		HideKeys:        true,
+		TimestampFormat: "2006-01-02 15:04:05",
+		CallerFirst:     true,
+		CustomCallerFormatter: func(frame *runtime.Frame) string {
+			funcInfo := runtime.FuncForPC(frame.PC)
+			if funcInfo == nil {
+				return "error during runtime.FuncForPC"
+			}
+			fullPath, line := funcInfo.FileLine(frame.PC)
+			return fmt.Sprintf(" [%v:%v]", filepath.Base(fullPath), line)
+		},
+	}
+	fmtter.NoColors = false
+	return fmtter
 }

@@ -9,8 +9,12 @@ import (
 )
 
 func GetAllBoards(c echo.Context) error {
+	trans := model.BeginTx()
+	defer model.CloseTx(trans)
+
 	boards, err := model.SelectAllBoards()
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	res := NewBoardOutlines(boards)
@@ -18,6 +22,9 @@ func GetAllBoards(c echo.Context) error {
 }
 
 func GetBoard(c echo.Context) error {
+	trans := model.BeginTx()
+	defer model.CloseTx(trans)
+
 	limit, offset, err := paginate(c)
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -28,10 +35,12 @@ func GetBoard(c echo.Context) error {
 	}
 	b, err := model.GetBoardByBid(bid)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	p, err := model.GetPostsByBoard(bid, limit, offset)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	posts, err := NewPostOutlines(p)
@@ -49,6 +58,9 @@ func GetBoard(c echo.Context) error {
 }
 
 func SetBoard(c echo.Context) error {
+	trans := model.BeginTx()
+	defer model.CloseTx(trans)
+
 	rec := new(boardInfo)
 	if err := c.Bind(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -59,12 +71,16 @@ func SetBoard(c echo.Context) error {
 		Intro:  rec.Intro,
 	}
 	if err := model.InsertBoard(b); err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	return util.SuccessRespond(c, http.StatusOK, b)
 }
 
 func UpdateBoard(c echo.Context) error {
+	trans := model.BeginTx()
+	defer model.CloseTx(trans)
+
 	bid, err := strconv.Atoi(c.Param("bid"))
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -84,18 +100,23 @@ func UpdateBoard(c echo.Context) error {
 	}
 	err = model.UpdateBoard(b)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	return util.SuccessRespond(c, http.StatusOK, nil)
 }
 
 func DeleteBoard(c echo.Context) error {
+	trans := model.BeginTx()
+	defer model.CloseTx(trans)
+
 	bid, err := strconv.Atoi(c.Param("bid"))
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 	err = model.DeleteBoard(bid)
 	if err != nil {
+		model.RollbackTx(trans)
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	return util.SuccessRespond(c, http.StatusOK, nil)

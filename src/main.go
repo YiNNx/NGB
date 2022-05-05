@@ -6,7 +6,6 @@ import (
 	"ngb/config"
 	"ngb/model"
 	"ngb/router"
-	"ngb/util"
 )
 
 func main() {
@@ -19,6 +18,5 @@ func main() {
 
 	router.InitRouters(e)
 
-	util.Logger.Info("http server started")
 	e.Logger.Fatal(e.Start(config.C.App.Addr))
 }

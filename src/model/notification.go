@@ -35,7 +35,7 @@ type Message struct {
 }
 
 func InsertNotification(notiType int, uid int, contentId int) error {
-	tx, err := db.Begin()
+	tx, err := tx.Begin()
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func InsertNotification(notiType int, uid int, contentId int) error {
 }
 
 func InsertMessage(n *Message) error {
-	tx, err := db.Begin()
+	tx, err := tx.Begin()
 	if err != nil {
 		return err
 	}
@@ -80,7 +80,7 @@ func InsertMessage(n *Message) error {
 
 func GetMessageByMid(mid int) (*Message, error) {
 	m := &Message{Mid: mid}
-	err := db.Model(m).WherePK().Select()
+	err := tx.Model(m).WherePK().Select()
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func GetMessageByMid(mid int) (*Message, error) {
 
 func GetNotificationsByUid(uid int, limit int, offset int) ([]Notification, error) {
 	var notifications []Notification
-	err := db.Model(&notifications).
+	err := tx.Model(&notifications).
 		Where("uid = ?", uid).
 		Limit(limit).Offset(offset).Select()
 	if err != nil {
@@ -99,7 +99,7 @@ func GetNotificationsByUid(uid int, limit int, offset int) ([]Notification, erro
 }
 
 func UpdateNotificationStatus(a *Notification) error {
-	_, err := db.Model(a).Column("status").WherePK().Update()
+	_, err := tx.Model(a).Column("status").WherePK().Update()
 	if err != nil {
 		return err
 	}

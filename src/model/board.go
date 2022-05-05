@@ -18,21 +18,15 @@ type Board struct {
 }
 
 func InsertBoard(b *Board) error {
-	tx, err := db.Begin()
-	defer tx.Close()
-	_, err = db.Model(b).Insert()
+	_, err := tx.Model(b).Insert()
 	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	if err := tx.Commit(); err != nil {
 		return err
 	}
 	return nil
 }
 
 func UpdateBoard(b *Board) error {
-	_, err := db.Model(b).
+	_, err := tx.Model(b).
 		Column("name", "avatar", "intro").
 		Where("bid = ?", b.Bid).
 		Update()
@@ -44,7 +38,7 @@ func UpdateBoard(b *Board) error {
 
 func GetBoardByBid(bid int) (*Board, error) {
 	b := &Board{Bid: bid}
-	err := db.Model(b).WherePK().Select()
+	err := tx.Model(b).WherePK().Select()
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +48,7 @@ func GetBoardByBid(bid int) (*Board, error) {
 func GetBoardsByBids(bids []int) ([]Board, error) {
 	if bids != nil {
 		var boards []Board
-		err := db.Model(&boards).
+		err := tx.Model(&boards).
 			Where("bid in (?)", pg.In(bids)).
 			Select()
 		if err != nil {
@@ -68,7 +62,7 @@ func GetBoardsByBids(bids []int) ([]Board, error) {
 
 func SelectAllBoards() ([]Board, error) {
 	var boards []Board
-	err := db.Model(&boards).Select()
+	err := tx.Model(&boards).Select()
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +71,7 @@ func SelectAllBoards() ([]Board, error) {
 
 func CheckBoardId(bid int) error {
 	b := &Board{Bid: bid}
-	err := db.Model(b).WherePK().Select()
+	err := tx.Model(b).WherePK().Select()
 	if err != nil {
 		return err
 	}
@@ -86,7 +80,7 @@ func CheckBoardId(bid int) error {
 
 func DeleteBoard(bid int) error {
 	b := &Board{Bid: bid}
-	_, err := db.Model(b).WherePK().Delete()
+	_, err := tx.Model(b).WherePK().Delete()
 	if err != nil {
 		return err
 	}

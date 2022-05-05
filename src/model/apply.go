@@ -5,6 +5,10 @@ import "time"
 //Apply Type:
 //	1 - 创建板块申请
 //	2 - 管理员申请
+const (
+	TypeApplyBoard = 1
+	TypeApplyAdmin = 2
+)
 
 type Apply struct {
 	tableName struct{}
@@ -20,14 +24,8 @@ type Apply struct {
 }
 
 func InsertApply(a *Apply) error {
-	tx, err := db.Begin()
-	defer tx.Close()
-	_, err = db.Model(a).Insert()
+	_, err := tx.Model(a).Insert()
 	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	if err := tx.Commit(); err != nil {
 		return err
 	}
 	return nil
@@ -35,7 +33,7 @@ func InsertApply(a *Apply) error {
 
 func SelectBoardApplies() ([]Apply, error) {
 	var applies []Apply
-	err := db.Model(&applies).Where("type = 1").Select()
+	err := tx.Model(&applies).Where("type = 1").Select()
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +42,7 @@ func SelectBoardApplies() ([]Apply, error) {
 
 func SelectAdminApplies() ([]Apply, error) {
 	var applies []Apply
-	err := db.Model(&applies).Where("type = 2").Select()
+	err := tx.Model(&applies).Where("type = 2").Select()
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +51,7 @@ func SelectAdminApplies() ([]Apply, error) {
 
 func SelectApplyByApid(apid int) (*Apply, error) {
 	ap := &Apply{Apid: apid}
-	err := db.Model(ap).WherePK().Select()
+	err := tx.Model(ap).WherePK().Select()
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +59,7 @@ func SelectApplyByApid(apid int) (*Apply, error) {
 }
 
 func UpdateApplyStatus(a *Apply) error {
-	_, err := db.Model(a).Column("status").WherePK().Update()
+	_, err := tx.Model(a).Column("status").WherePK().Update()
 	if err != nil {
 		return err
 	}
