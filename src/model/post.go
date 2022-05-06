@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/go-pg/pg/v10"
+	"errors"
 	"time"
 )
 
@@ -21,21 +21,14 @@ type Post struct {
 	Collections []User `pg:"many2many:collections"`
 }
 
-func InsertPost(p *Post) error {
-	_, err := tx.Model(p).Insert()
-	if err != nil {
-		return err
-	}
-	return nil
+type Like struct {
+	UserUid int
+	PostPid int
 }
 
-func GetPostByPid(pid int) (*Post, error) {
-	p := &Post{Pid: pid}
-	err := tx.Model(p).WherePK().Select()
-	if err != nil {
-		return nil, err
-	}
-	return p, nil
+type Collection struct {
+	UserUid int
+	PostPid int
 }
 
 func GetPostsByTag(tag string, limit int, offset int) ([]Post, error) {
@@ -47,21 +40,6 @@ func GetPostsByTag(tag string, limit int, offset int) ([]Post, error) {
 		return nil, err
 	}
 	return posts, nil
-}
-
-func GetPostsByPids(pids []int) ([]Post, error) {
-	if pids != nil {
-		var posts []Post
-		err := tx.Model(&posts).
-			Where("pid in (?)", pg.In(pids)).
-			Select()
-		if err != nil {
-			return nil, err
-		}
-		return posts, nil
-	} else {
-		return nil, nil
-	}
 }
 
 func GetPostsByUid(uid int) ([]Post, error) {
@@ -95,29 +73,61 @@ func SelectAllPosts(limit int, offset int) ([]Post, error) {
 	return posts, nil
 }
 
-func CheckPostId(pid int) error {
-	p := &Post{Pid: pid}
-	err := tx.Model(p).WherePK().Select()
+// -------- Like & Collection -----------
+
+func InsertLikeOrCollection(m interface{}, pid int, uid int) error {
+	if err := CheckPK(&Post{Pid: pid}); err != nil {
+		return err
+	}
+
+	if res, err := tx.Model(m).Where("user_uid = ?", uid).Where("post_pid = ?", pid).SelectOrInsert(); err != nil {
+		return err
+	} else if res == false {
+		return errors.New("already exist")
+	}
+	return nil
+}
+
+func DeleteLikeOrCollection(m interface{}, postPid int, userUid int) error {
+	_, err := tx.Model(m).Where("post_pid = ?", postPid).Where("user_uid = ?", userUid).Delete()
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetBoardByPost(pid int) (int, error) {
-	p := &Post{Pid: pid}
-	err := tx.Model(p).WherePK().Select()
+func GetLikesOfUser(uid int) (posts []Post, count int, err error) {
+	var user User
+	count, err = tx.Model(&user).Relation("Likes").Where("uid = ?", uid).SelectAndCount()
 	if err != nil {
-		return 0, err
+		return nil, 0, err
 	}
-	return p.Board, nil
+	return user.Likes, count, nil
 }
 
-func DeletePost(pid int) error {
-	p := &Post{Pid: pid}
-	_, err := tx.Model(p).WherePK().Delete()
+func GetLikesOfPost(pid int) (users []User, count int, err error) {
+	var post Post
+	count, err = tx.Model(&post).Relation("Likes").Where("pid = ?", pid).SelectAndCount()
 	if err != nil {
-		return err
+		return nil, 0, err
 	}
-	return nil
+	return post.Likes, count, nil
+}
+
+func GetCollectionsOfUser(uid int) ([]Post, error) {
+	var user User
+	err := tx.Model(&user).Relation("Collections").Where("uid = ?", uid).Select()
+	if err != nil {
+		return nil, err
+	}
+	return user.Collections, nil
+}
+
+func GetCollectionsOfPost(pid int) ([]User, error) {
+	var post Post
+	err := tx.Model(&post).Relation("Collections").Where("pid = ?", pid).Select()
+	if err != nil {
+		return nil, err
+	}
+	return post.Collections, nil
 }

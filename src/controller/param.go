@@ -76,7 +76,8 @@ type userOutline struct {
 }
 
 func NewUserOutline(uid int) (*userOutline, error) {
-	u, err := model.GetUserByUid(uid)
+	u := &model.User{Uid: uid}
+	err := model.GetByPK(u)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +111,8 @@ type boardOutline struct {
 }
 
 func NewBoardOutline(bid int) (*boardOutline, error) {
-	b, err := model.GetBoardByBid(bid)
+	b := &model.Board{Bid: bid}
+	err := model.GetByPK(b)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +152,7 @@ type postOutline struct {
 func NewPostOutlines(p []model.Post) ([]postOutline, error) {
 	var outlines []postOutline
 	for i, _ := range p {
-		count, err := model.GetLikesCountOfPost(p[i].Pid)
+		_, count, err := model.GetLikesOfPost(p[i].Pid)
 		if err != nil {
 			return nil, err
 		}

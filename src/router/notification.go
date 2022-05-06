@@ -9,6 +9,7 @@ import (
 
 func initNotificationRouter(e *echo.Echo) {
 	g := e.Group("/notification")
+
 	g.GET("", controller.GetNotification, middleware.JWTWithConfig(util.Conf))
 	g.GET("/new", controller.GetNewNotification, middleware.JWTWithConfig(util.Conf))
 }

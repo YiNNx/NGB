@@ -63,11 +63,12 @@ func VerifyAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 			if err != nil {
 				return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 			}
-			bid, err := model.GetBoardByPost(pid)
+			p := &model.Post{Pid: pid}
+			err = model.GetByPK(p)
 			if err != nil {
 				return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 			}
-			res, err := model.CheckAdmin(bid, uid)
+			res, err := model.CheckAdmin(p.Board, uid)
 			if err != nil {
 				return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 			}

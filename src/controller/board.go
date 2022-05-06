@@ -12,12 +12,13 @@ func GetAllBoards(c echo.Context) error {
 	tx := model.BeginTx()
 	defer tx.Close()
 
-	boards, err := model.SelectAllBoards()
+	var boards *[]model.Board
+	err := model.GetAll(boards)
 	if err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
-	res := NewBoardOutlines(boards)
+	res := NewBoardOutlines(*boards)
 	return util.SuccessRespond(c, http.StatusOK, res)
 }
 
@@ -33,7 +34,8 @@ func GetBoard(c echo.Context) error {
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
-	b, err := model.GetBoardByBid(bid)
+	b := &model.Board{Bid: bid}
+	err = model.GetByPK(b)
 	if err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -70,7 +72,7 @@ func SetBoard(c echo.Context) error {
 		Avatar: rec.Avatar,
 		Intro:  rec.Intro,
 	}
-	if err := model.InsertBoard(b); err != nil {
+	if err := model.Insert(b); err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
@@ -114,7 +116,7 @@ func DeleteBoard(c echo.Context) error {
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
-	err = model.DeleteBoard(bid)
+	err = model.Delete(&model.Board{Bid: bid})
 	if err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())

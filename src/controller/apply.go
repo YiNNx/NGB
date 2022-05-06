@@ -30,7 +30,7 @@ func SetBoardApply(c echo.Context) error {
 		Name:   rec.Name,
 		Reason: rec.Reason,
 	}
-	if err := model.InsertApply(apply); err != nil {
+	if err := model.Insert(apply); err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
@@ -58,7 +58,7 @@ func SetAdminApply(c echo.Context) error {
 		Bid:    rec.Bid,
 		Reason: rec.Reason,
 	}
-	if err := model.InsertApply(apply); err != nil {
+	if err := model.Insert(apply); err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
@@ -146,7 +146,8 @@ func PassApply(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	apply, err := model.SelectApplyByApid(apid)
+	apply := &model.Apply{Apid: apid}
+	err = model.GetByPK(apply)
 	if err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -177,7 +178,7 @@ func PassApply(c echo.Context) error {
 		b := &model.Board{
 			Name: apply.Name,
 		}
-		err := model.InsertBoard(b)
+		err := model.Insert(b)
 		if err != nil {
 			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())

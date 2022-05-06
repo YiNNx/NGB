@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"github.com/go-pg/pg/v10"
 	"ngb/util"
 	"time"
@@ -26,15 +27,12 @@ type User struct {
 	Collections []Post `pg:"many2many:collections"`
 }
 
-func InsertUser(u *User) error {
-	_, err := tx.Model(u).Insert()
-	if err != nil {
-		return err
-	}
-	return nil
+type FollowShip struct {
+	tableName struct{}
+	Followee  int
+	Follower  int
 }
 
-// Validate user's email & password
 func ValidateUser(email string, pwd string) (*User, error) {
 	u := new(User)
 	if err := tx.Model(u).Where("email = ?", email).Select(); err != nil {
@@ -47,7 +45,6 @@ func ValidateUser(email string, pwd string) (*User, error) {
 	return u, nil
 }
 
-// Update user's info by id
 func UpdateUser(u *User) error {
 	_, err := tx.Model(u).
 		Column("email", "username", "phone", "avatar", "nickname", "gender", "intro").
@@ -71,56 +68,18 @@ func ChangePwd(pwdHashNew string, uid int) error {
 	return nil
 }
 
-func GetUserByUid(uid int) (*User, error) {
-	u := &User{Uid: uid}
-	err := tx.Model(u).WherePK().Select()
-	if err != nil {
-		return nil, err
-	}
-	return u, nil
-}
-
-func GetUsersByUids(uids []int) ([]User, error) {
-	if uids != nil {
-		var users []User
-		err := tx.Model(&users).
-			Where("uid in (?)", pg.In(uids)).
-			Select()
-		if err != nil {
-			return nil, err
-		}
-		return users, nil
-	} else {
+func GetUsersByUidList(uids []int) ([]User, error) {
+	if uids == nil {
 		return nil, nil
 	}
-}
-
-// SelectAllUser returns all users' info
-func SelectAllUser() ([]User, error) {
 	var users []User
-	err := tx.Model(&users).Select()
+	err := tx.Model(&users).
+		Where("uid in (?)", pg.In(uids)).
+		Select()
 	if err != nil {
 		return nil, err
 	}
 	return users, nil
-}
-
-func DeleteUser(uid int) error {
-	u := &User{Uid: uid}
-	_, err := tx.Model(u).WherePK().Delete()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func CheckUserId(uid int) error {
-	u := &User{Uid: uid}
-	err := tx.Model(u).WherePK().Select()
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func GetUsersByUsernames(usernames []string) ([]User, error) {
@@ -136,4 +95,63 @@ func GetUsersByUsernames(usernames []string) ([]User, error) {
 	} else {
 		return nil, nil
 	}
+}
+
+// ----------- FollowShip -----------
+
+func InsertFollowShip(followee int, follower int) error {
+	if err := CheckPK(&User{Uid: followee}); err != nil {
+		return err
+	}
+	if err := CheckPK(&User{Uid: follower}); err != nil {
+		return err
+	}
+	f := &FollowShip{
+		Followee: followee,
+		Follower: follower,
+	}
+	if res, err := tx.Model(f).Where("followee = ?", followee).Where("follower = ?", follower).SelectOrInsert(); err != nil {
+		return err
+	} else if res == false {
+		return errors.New("already exist")
+	}
+	return nil
+}
+
+func DeleteFollowShip(followee int, follower int) error {
+	followShip := &FollowShip{}
+	_, err := tx.Model(followShip).Where("follower = ?", follower).Where("followee = ?", followee).Delete()
+	return err
+}
+
+func GetFollowingOfUser(uid int) ([]User, error) {
+	var follow []FollowShip
+	if err := tx.Model(&follow).Where("follower = ?", uid).Select(); err != nil {
+		return nil, err
+	}
+	var uids []int
+	for i, _ := range follow {
+		uids = append(uids, follow[i].Followee)
+	}
+	users, err := GetUsersByUidList(uids)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func GetFollowersOfUser(uid int) ([]User, error) {
+	var follow []FollowShip
+	if err := tx.Model(&follow).Where("followee = ?", uid).Select(); err != nil {
+		return nil, err
+	}
+	var uids []int
+	for i, _ := range follow {
+		uids = append(uids, follow[i].Follower)
+	}
+	users, err := GetUsersByUidList(uids)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }

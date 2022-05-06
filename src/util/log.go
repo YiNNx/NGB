@@ -23,13 +23,6 @@ func init() {
 func getLogger() *logrus.Logger {
 	logger := logrus.New()
 
-	//stdFormatter := &prefixed.TextFormatter{
-	//	FullTimestamp:   true,
-	//	TimestampFormat: "2006-01-02.15:04:05.000000",
-	//	ForceFormatting: true,
-	//	ForceColors:     true,
-	//	DisableColors:   false,
-	//}
 	logger.SetReportCaller(true)
 	logger.SetFormatter(formatter())
 	logger.SetLevel(logrus.DebugLevel)
@@ -75,3 +68,11 @@ func formatter() *nested.Formatter {
 	fmtter.NoColors = false
 	return fmtter
 }
+
+//var stdFormatter  &prefixed.TextFormatter{
+//	FullTimestamp:   true,
+//	TimestampFormat: "2006-01-02.15:04:05.000000",
+//	ForceFormatting: true,
+//	ForceColors:     true,
+//	DisableColors:   false,
+//}

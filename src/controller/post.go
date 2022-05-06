@@ -35,14 +35,19 @@ func NewPost(c echo.Context) error {
 		Title:   rec.Title,
 		Content: rec.Content,
 	}
-	if err := model.InsertPost(p); err != nil {
+	if err := model.Insert(p); err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
 	users, err := GetUsersMentioned(rec.Content)
 	for i := range users {
-		if err := model.InsertNotification(model.TypeMentioned, users[i].Uid, p.Pid); err != nil {
+		n := &model.Notification{
+			Uid:       model.TypeMentioned,
+			Type:      users[i].Uid,
+			ContentId: p.Pid,
+		}
+		if err := model.Insert(n); err != nil {
 			tx.Rollback()
 			util.Logger.Info("http-response:" + err.Error())
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -55,7 +60,12 @@ func NewPost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	for i := range followers {
-		if err := model.InsertNotification(model.TypeNewPost, followers[i].Uid, p.Pid); err != nil {
+		n := &model.Notification{
+			Uid:       model.TypeNewPost,
+			Type:      users[i].Uid,
+			ContentId: p.Pid,
+		}
+		if err := model.Insert(n); err != nil {
 			tx.Rollback()
 			util.Logger.Info("http-response:" + err.Error())
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -120,21 +130,26 @@ func GetPost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	p, err := model.GetPostByPid(pid)
+	p := &model.Post{Pid: pid}
+	err = model.GetByPK(p)
 	if err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
+	util.Logger.Error("here")
 
-	likesCount, err := model.GetLikesCountOfPost(pid)
+	_, likesCount, err := model.GetLikesOfPost(pid)
 	if err != nil {
+		util.Logger.Error("er")
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	commentsCount, err := model.GetCommentsCountOfPost(pid)
+	_, commentsCount, err := model.GetCommentsOfPost(pid)
 	if err != nil {
 		tx.Rollback()
+		util.Logger.Error("er!")
+
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
@@ -148,7 +163,7 @@ func GetPost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	co, err := model.GetCommentsByPid(pid)
+	co, _, err := model.GetCommentsOfPost(pid)
 	if err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -216,13 +231,17 @@ func CollectPost(c echo.Context) error {
 	}
 
 	if rec.Status {
-		if err := model.InsertCollection(pid, uid); err != nil {
+		co := &model.Collection{
+			PostPid: pid,
+			UserUid: uid,
+		}
+		if err := model.InsertLikeOrCollection(co, pid, uid); err != nil {
 			tx.Rollback()
 			util.Logger.Info("http-response:" + err.Error())
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 	} else {
-		if err := model.DeleteCollection(pid, uid); err != nil {
+		if err := model.DeleteLikeOrCollection(&model.Collection{}, pid, uid); err != nil {
 			tx.Rollback()
 			util.Logger.Info("http-response:" + err.Error())
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -252,13 +271,17 @@ func LikePost(c echo.Context) error {
 	}
 
 	if rec.Status {
-		if err := model.InsertLike(pid, uid); err != nil {
+		l := &model.Like{
+			PostPid: pid,
+			UserUid: uid,
+		}
+		if err := model.InsertLikeOrCollection(l, pid, uid); err != nil {
 			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 		return util.SuccessRespond(c, http.StatusOK, nil)
 	} else {
-		if err := model.DeleteLike(pid, uid); err != nil {
+		if err := model.DeleteLikeOrCollection(&model.Like{}, pid, uid); err != nil {
 			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
@@ -284,7 +307,8 @@ func CommentPost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	p, err := model.GetPostByPid(pid)
+	p := &model.Post{Pid: pid}
+	err = model.GetByPK(p)
 	if err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -303,13 +327,18 @@ func CommentPost(c echo.Context) error {
 		Content:  rec.Content,
 	}
 
-	err = model.InsertComment(comment)
+	err = model.Insert(comment)
 	if err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	if err := model.InsertNotification(model.TypeComment, p.Author, comment.Cid); err != nil {
+	n := &model.Notification{
+		Uid:       p.Author,
+		Type:      model.TypeComment,
+		ContentId: comment.Cid,
+	}
+	if err := model.Insert(n); err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
@@ -340,7 +369,8 @@ func SubCommentPost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	p, err := model.GetPostByPid(pid)
+	p := &model.Post{Pid: pid}
+	err = model.GetByPK(p)
 	if err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -361,7 +391,7 @@ func SubCommentPost(c echo.Context) error {
 		Content:   rec.Content,
 	}
 
-	err = model.InsertComment(comment)
+	err = model.Insert(comment)
 	if err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -401,7 +431,7 @@ func DeletePost(c echo.Context) error {
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
-	err = model.DeletePost(pid)
+	err = model.Delete(&model.Post{Pid: pid})
 	if err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())

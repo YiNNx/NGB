@@ -10,7 +10,9 @@ import (
 
 func initPostRouter(e *echo.Echo) {
 	e.POST("/board/:bid/post", controller.NewPost, middleware.JWTWithConfig(util.Conf))
+
 	g := e.Group("/post")
+
 	g.GET("", controller.GetPostsByTag)
 	g.GET("/all", controller.GetAllPosts)
 	g.GET("/:pid", controller.GetPost)

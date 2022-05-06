@@ -18,46 +18,12 @@ type Comment struct {
 	Content string    `pg:",notnull"`
 }
 
-func InsertComment(c *Comment) error {
-	if _, err := tx.Model(c).Insert(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func GetCommentsCountOfPost(pid int) (int, error) {
-	count, err := tx.Model((*Comment)(nil)).Where("post = ?", pid).Count()
-	if err != nil {
-		return 0, err
-	}
-	return count, nil
-}
-
-func GetCommentByCid(cid int) (*Comment, error) {
-	c := &Comment{Cid: cid}
-	err := tx.Model(c).WherePK().Select()
-	if err != nil {
-		return nil, err
-	}
-	return c, nil
-}
-
-func GetCommentsByPid(pid int) ([]Comment, error) {
-	var comments []Comment
-	err := tx.Model(&comments).
+func GetCommentsOfPost(pid int) (comments []Comment, count int, err error) {
+	count, err = tx.Model(&comments).
 		Where("post = ?", pid).
-		Select()
+		SelectAndCount()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return comments, nil
-}
-
-func CheckCommentId(cid int) error {
-	c := &Comment{Cid: cid}
-	err := tx.Model(c).WherePK().Select()
-	if err != nil {
-		return err
-	}
-	return nil
+	return comments, count, nil
 }

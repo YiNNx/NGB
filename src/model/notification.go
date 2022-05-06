@@ -34,59 +34,6 @@ type Message struct {
 	Content  string
 }
 
-func InsertNotification(notiType int, uid int, contentId int) error {
-	tx, err := tx.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Close()
-	n := &Notification{
-		Uid:       uid,
-		Type:      notiType,
-		ContentId: contentId,
-	}
-	_, err = tx.Model(n).Insert()
-	if err != nil {
-		if err2 := tx.Rollback(); err2 != nil {
-			return err
-		}
-		return err
-	}
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func InsertMessage(n *Message) error {
-	tx, err := tx.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Close()
-
-	_, err = tx.Model(n).Insert()
-	if err != nil {
-		if err2 := tx.Rollback(); err2 != nil {
-			return err
-		}
-		return err
-	}
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func GetMessageByMid(mid int) (*Message, error) {
-	m := &Message{Mid: mid}
-	err := tx.Model(m).WherePK().Select()
-	if err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 func GetNotificationsByUid(uid int, limit int, offset int) ([]Notification, error) {
 	var notifications []Notification
 	err := tx.Model(&notifications).

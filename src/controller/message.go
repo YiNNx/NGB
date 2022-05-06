@@ -31,12 +31,17 @@ func SendMessage(c echo.Context) error {
 		Receiver: receiver,
 		Content:  rec.Content,
 	}
-	if err := model.InsertMessage(m); err != nil {
+	if err := model.Insert(m); err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	if err := model.InsertNotification(model.TypeMessage, receiver, m.Mid); err != nil {
+	n := &model.Notification{
+		Uid:       model.TypeMessage,
+		Type:      receiver,
+		ContentId: m.Mid,
+	}
+	if err := model.Insert(n); err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
