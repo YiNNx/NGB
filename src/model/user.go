@@ -33,6 +33,8 @@ type FollowShip struct {
 	Follower  int
 }
 
+// ----------- User -------------
+
 func ValidateUser(email string, pwd string) (*User, error) {
 	u := new(User)
 	if err := tx.Model(u).Where("email = ?", email).Select(); err != nil {

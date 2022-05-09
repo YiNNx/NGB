@@ -13,14 +13,14 @@ type Board struct {
 	Avatar string
 	Time   time.Time `pg:"default:now()"`
 	Intro  string
-
-	//Posts    []Post `pg:"rel:has-many"`
 }
 
 type ManageShip struct {
 	Bid int
 	Uid int
 }
+
+// ----------- Board -------------
 
 func UpdateBoard(b *Board) error {
 	_, err := tx.Model(b).

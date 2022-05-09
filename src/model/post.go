@@ -31,6 +31,8 @@ type Collection struct {
 	PostPid int
 }
 
+// ----------- Post -------------
+
 func GetPostsByTag(tag string, limit int, offset int) ([]Post, error) {
 	var posts []Post
 	err := tx.Model(&posts).

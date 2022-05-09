@@ -15,7 +15,7 @@ import (
 
 var Logger *logrus.Logger
 
-func init() {
+func initLog() {
 	Logger = getLogger()
 	Logger.Info("logger started")
 }
