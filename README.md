@@ -57,6 +57,8 @@ National Geography of Bingyan！
   > 	"content":"xxxxx"
   > }
   > ```
+  >
+  > 广播：`ws://localhost:8080/notification/`
 
 - 异步邮件
   - 开启10个发送协程

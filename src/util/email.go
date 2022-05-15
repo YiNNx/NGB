@@ -123,10 +123,8 @@ func worker(worker int, msg chan Message, result chan error) {
 	for job := range msg {
 		fmt.Println("worker:", worker, "msg: ", job.Id, ":", job.Name)
 
-		// 模拟任务执行时间
 		time.Sleep(time.Second * time.Duration(RandInt(1, 3)))
 
-		// 通过通道返回执行结果
 		result <- nil
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-//user
+//---------- user -----------
 
 type receiveUserAccount struct {
 	Email    string `json:"email" validate:"required,email"`
@@ -66,8 +66,6 @@ func NewUserInfos(users []model.User) []userInfo {
 	}
 	return usersInfo
 }
-
-//post
 
 type userOutline struct {
 	Uid      int    `json:"uid"`
@@ -139,6 +137,8 @@ func NewBoardOutlines(b []model.Board) []boardOutline {
 	}
 	return outlines
 }
+
+//---------- post -----------
 
 type postOutline struct {
 	Pid        int       `json:"pid"`
