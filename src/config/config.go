@@ -18,6 +18,7 @@ type Config struct {
 	Postgresql postgresql `yaml:"postgresql"`
 	Jwt        jwt        `yaml:"jwt"`
 	Log        log        `yaml:"log"`
+	Mail       mail       `yaml:"mail"`
 }
 
 type app struct {
@@ -39,6 +40,13 @@ type jwt struct {
 type log struct {
 	Path string `yaml:"path"`
 	File string `yaml:"file"`
+}
+
+type mail struct {
+	Host     string `yaml:"host"`
+	Addr     string `yaml:"addr"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
 }
 
 func init() {

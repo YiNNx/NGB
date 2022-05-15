@@ -14,3 +14,9 @@ jwt:
 log:
   path: ""
   file: ""
+
+mail:
+  host : ""
+  port : ""
+  username : ""
+  password : ""

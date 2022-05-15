@@ -8,6 +8,6 @@ import (
 )
 
 func initMessageRouter(e *echo.Echo) {
-	g := e.Group("/message")
-	g.POST("", controller.SendMessage, middleware.JWTWithConfig(util.Conf))
+	e.GET("/chat", controller.Chat, middleware.JWTWithConfig(util.Conf))
+	e.POST("/message", controller.SendMessage, middleware.JWTWithConfig(util.Conf))
 }

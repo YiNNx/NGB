@@ -1,12 +1,25 @@
 package main
 
 import (
-	"ngb/util"
-	_ "ngb/util"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"ngb/config"
+	"ngb/model"
+	"ngb/router"
 )
 
 func main() {
-	util.InsertES(1232, "te33 34st", "te3 33st")
-	print("yes")
-	util.Search()
+	model.Connect()
+	defer model.Close()
+
+	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+
+	router.InitRouters(e)
+
+	e.Logger.Fatal(e.Start(config.C.App.Addr))
+	//util.SendEmail()
+	//util.Test2()
 }
+

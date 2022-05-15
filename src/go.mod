@@ -8,9 +8,10 @@ require (
 	github.com/go-pg/pg/v10 v10.10.6
 	github.com/go-playground/validator/v10 v10.10.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/gorilla/websocket v1.5.0
+	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/lestrrat/go-file-rotatelogs v0.0.0-20180223000712-d3151e2a480f
-	github.com/nxadm/tail v1.4.4
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3

@@ -2,5 +2,5 @@ package util
 
 func init() {
 	initLog()
-	initEs()
+	//initEs()
 }
