@@ -75,9 +75,9 @@ type Hub struct {
 
 func newHub() *Hub {
 	return &Hub{
-		broadcast:  make(chan *model.Message),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
+		broadcast:  make(chan *model.Message, 100),
+		register:   make(chan *Client, 100),
+		unregister: make(chan *Client, 100),
 		clients:    map[string]*Client{},
 	}
 }
@@ -110,12 +110,9 @@ func (h *Hub) run() {
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
-	hub *Hub
-
 	// The websocket connection.
 	conn *websocket.Conn
 
-	// Buffered channel of outbound messages.
 	from int
 	to   int
 	send chan *model.Message
@@ -125,24 +122,16 @@ func (c *Client) setID() string {
 	return strconv.Itoa(c.from) + "_" + strconv.Itoa(c.to)
 }
 
-// readPump pumps messages from the websocket connection to the hub.
-//
-// The application runs readPump in a per-connection goroutine. The application
-// ensures that there is at most one reader on a connection by executing all
-// reads from this goroutine.
-func (c *Client) readPump() {
+func (c *Client) readMsg() {
 	defer func() {
 		hub.unregister <- c
 		c.conn.Close()
 	}()
-	c.conn.SetReadLimit(maxMessageSize)
-	c.conn.SetReadDeadline(time.Now().Add(pongWait))
-	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
 		tx := model.BeginTx()
 		_, content, err := c.conn.ReadMessage()
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure) {
 				util.Logger.Error(err)
 			}
 			util.Logger.Info(err)
@@ -180,17 +169,11 @@ func (c *Client) readPump() {
 	}
 }
 
-// writePump pumps messages from the hub to the websocket connection.
-//
-// A goroutine running writePump is started for each connection. The
-// application ensures that there is at most one writer to a connection by
-// executing all writes from this goroutine.
-func (c *Client) writePump() {
+func (c *Client) writeMsg() {
 	defer func() {
 		c.conn.Close()
 	}()
 	for {
-		c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 		msg, ok := <-c.send
 		if !ok {
 			// The hub closed the channel.
@@ -223,8 +206,14 @@ var upgrader = websocket.Upgrader{
 
 func getClient(from int, to int, ws *websocket.Conn) *Client {
 	chatID := strconv.Itoa(from) + "_" + strconv.Itoa(to)
-	if Client, ok := hub.clients[chatID]; ok {
-		return Client
+	if res, ok := hub.clients[chatID]; ok {
+		client := &Client{
+			conn: ws,
+			from: from,
+			to:   to,
+			send: res.send,
+		}
+		return client
 	}
 	client := &Client{
 		conn: ws,
@@ -256,177 +245,10 @@ func Chat(c echo.Context) error {
 	readClient := getClient(uid, with, ws)
 	writeClient := getClient(with, uid, ws)
 
-	go readClient.readPump()
-	go writeClient.writePump()
+	go readClient.readMsg()
+	go writeClient.writeMsg()
 
 	wg.Add(1)
 	wg.Wait()
 	return nil
 }
-
-// --------------- WebSocket Api --------------
-//
-//type Hub struct {
-//	clients    map[string]*ClientChan
-//	register   chan *ClientChan
-//	unregister chan *ClientChan
-//}
-//
-//func (hub *Hub) run() {
-//	for {
-//		select {
-//		case client := <-hub.register:
-//			chatID := setChatID(client.from, client.to)
-//			hub.clients[chatID] = client
-//			util.Logger.Debug(hub.clients)
-//		case client := <-hub.unregister:
-//			chatID := setChatID(client.from, client.to)
-//			if _, ok := hub.clients[chatID]; ok {
-//				delete(hub.clients, chatID)
-//				close(client.msgChan)
-//				util.Logger.Debug(hub.clients)
-//			}
-//		}
-//	}
-//}
-//
-//type ClientChan struct {
-//	from    int
-//	to      int
-//	msgChan chan model.Message
-//}
-//
-//func (client *ClientChan) close() {
-//	util.Logger.Debug("close")
-//
-//	if _, ok := <-client.msgChan; ok {
-//		close(client.msgChan)
-//		util.Logger.Debug("close")
-//	}
-//	util.Logger.Debug("close")
-//	hub.unregister <- client
-//}
-//
-//func setChatID(from int, to int) string {
-//	return strconv.Itoa(from) + "_" + strconv.Itoa(to)
-//}
-//
-//func getClient(from int, to int, ws *websocket.Conn) *ClientChan {
-//	chatID := setChatID(from, to)
-//	if Client, ok := hub.clients[chatID]; ok {
-//		return Client
-//	}
-//	client := &ClientChan{
-//		from:    from,
-//		to:      to,
-//		msgChan: make(chan model.Message, 100),
-//	}
-//	hub.register <- client
-//	return client
-//}
-//
-//var upGrader = websocket.Upgrader{
-//	ReadBufferSize:  1024,
-//	WriteBufferSize: 1024,
-//	CheckOrigin: func(r *http.Request) bool {
-//		return true
-//	},
-//}
-//
-//func Read(ws *websocket.Conn, readChan *ClientChan) {
-//	defer func() {
-//		//hub.unregister <- readChan
-//	}()
-//
-//	for {
-//		tx := model.BeginTx()
-//		_, content, err := ws.ReadMessage()
-//		if err != nil {
-//			if websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure) {
-//				util.Logger.Error(err)
-//			}
-//			util.Logger.Info(err)
-//			return
-//		}
-//		var rec receiveMessage
-//		err = json.Unmarshal(content, &rec)
-//		if err != nil {
-//			util.Logger.Error(err)
-//		}
-//		msg := model.Message{
-//			Time:     time.Now(),
-//			Sender:   readChan.from,
-//			Receiver: readChan.to,
-//			Content:  rec.Content,
-//		}
-//
-//		if err := model.Insert(&msg); err != nil {
-//			tx.Rollback()
-//			util.Logger.Error(err)
-//		}
-//
-//		readChan.msgChan <- msg
-//
-//		n := &model.Notification{
-//			Uid:       readChan.to,
-//			Type:      model.TypeMessage,
-//			ContentId: msg.Mid,
-//		}
-//		if err := model.Insert(n); err != nil {
-//			tx.Rollback()
-//			util.Logger.Error(err)
-//		}
-//		tx.Close()
-//	}
-//}
-//
-//func Send(ws *websocket.Conn, c *ClientChan) {
-//	defer func() {
-//		//hub.unregister <- c
-//	}()
-//
-//	for {
-//		msg, ok := <-c.msgChan
-//		if !ok {
-//			break
-//		}
-//		err := ws.WriteJSON(msg)
-//		if err != nil {
-//			util.Logger.Error(err)
-//		}
-//	}
-//}
-//
-//var wg sync.WaitGroup
-//
-//func Chat(c echo.Context) error {
-//
-//	with, err := strconv.Atoi(c.QueryParam("with"))
-//	if err != nil {
-//		util.Logger.Error(err)
-//		return err
-//	}
-//	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
-//
-//	ws, err := upGrader.Upgrade(c.Response(), c.Request(), nil)
-//	if err != nil {
-//		util.Logger.Error(err)
-//		return err
-//	}
-//	defer func(ws *websocket.Conn) {
-//		err := ws.Close()
-//		if err != nil {
-//			util.Logger.Error("ws close error: " + err.Error())
-//		}
-//	}(ws)
-//
-//	readChan := getClient(uid, with, ws)
-//	sendChan := getClient(with, uid, ws)
-//
-//	go Read(ws, readChan)
-//	go Send(ws, sendChan)
-//
-//	wg.Add(1)
-//	wg.Wait()
-//	return nil
-//}

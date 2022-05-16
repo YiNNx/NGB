@@ -53,12 +53,14 @@ National Geography of Bingyan！
   >
   > ```
   > {
-  > 	"time":"2022-xx-xxTxx:xx:xx.xxxxxxx+08:00",
-  > 	"content":"xxxxx"
+  >     "Mid": 233,
+  >     "Time": "xxxxx",
+  >     "Sender": 233,
+  >     "Receiver": 322,
+  >     "Content": "x"
   > }
   > ```
   >
-  > 广播：`ws://localhost:8080/notification/`
 
 - 异步邮件
   - 开启10个发送协程
