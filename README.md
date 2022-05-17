@@ -29,7 +29,7 @@
 
 - 提供一个websocket接口实现实时聊天
 
-  > 通过 `ws://localhost:8080/chat?with=<uid>` 建立与对方的websocket连接
+  > 接口： `ws://localhost:8080/chat?with=<uid>` 
   >
   > 和其他api一样需要身份验证
   >
@@ -58,9 +58,11 @@
 
 - 异步邮件
   - 开启10个发送协程
-  - 记录日志，将失败请求反馈给管理员
+  - 记录日志，将发送结果反馈给管理员
 
-- 提供对谷歌搜索的SEO优化
+- SEO:
 
-- 搜索功能 - elasticsearch
+  - 使用 [rendora](https://github.com/rendora/rendora)
+
+- elasticsearch
 
