@@ -11,4 +11,5 @@ func InitRouters(e *echo.Echo) {
 	initApplyRouter(e)
 	initNotificationRouter(e)
 	initMessageRouter(e)
+	initEmailRouter(e)
 }

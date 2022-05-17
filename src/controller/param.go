@@ -300,3 +300,9 @@ type responseNotification struct {
 	Time    time.Time   `json:"time"`
 	Content interface{} `json:"content"`
 }
+
+type receiveSendEmail struct {
+	To      []string `json:"to" validate:"required"`
+	Subject string   `json:"subject" validate:"required"`
+	Content string   `json:"content" validate:"required"`
+}

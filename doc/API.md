@@ -365,126 +365,164 @@
 
 ### super_admin
 
-- #### 创建板块✔
+- #### 创建板块 
 
-  `POST /board`
+`POST /board`
 
-  ```
+```
   {
-  	"name": "",
+   "name": "",
       "avatar": "",
       "intro": "",
   }
-  ```
+```
 
-- #### 编辑板块信息✔
+- #### 编辑板块信息 
 
-  `POST /board/:bid?`
+`POST /board/:bid?`
 
-  ```
+```
   {
-  	"name": "",
+   "name": "",
       "avatar": "",
       "intro": "",
   }
-  ```
+```
 
-- #### 删除板块✔
+- #### 删除板块 
 
-  `DELETE /board/:bid?`
+`DELETE /board/:bid?`
 
-- #### 删帖✔
+- #### 删帖 
 
-  `DELETE /post/:pid`
+`DELETE /post/:pid`
 
-- #### 删用户✔
+- #### 删用户 
 
-  `DELETE /user/:uid`
+`DELETE /user/:uid`
 
-- #### 查看所有用户✔
+- #### 查看所有用户 
 
-  `GET /user/all`
+`GET /user/all`
 
-- #### 查看所有板块管理员✔
+- #### 查看所有板块管理员 
 
-  `GET /user/admin`
+`GET /user/admin`
 
-- #### 查看管理员 & 创建板块申请✔
+- #### 查看管理员 & 创建板块申请 
 
-  `GET /apply/admin`
+`GET /apply/admin`
 
-  `GET /apply/board`
+`GET /apply/board`
 
-- #### 通过申请✔
+- #### 通过申请 
 
-  `POST /apply/:apid`
+`POST /apply/:apid`
+
+```
+  {
+   "status":true,
+  }
+```
+
+- #### 邮件
+
+  `POST /admin/email`
 
   ```
   {
-  	"status":true,
+  	"to":[
+  	"xxxxx@xx.com",
+  	"xxxxx@xx.com",
+  	...
+  	],
+  	"subject":"xxxxx",
+  	"content":
   }
   ```
+
+  
 
 ### admin
 
 - #### 编辑板块信息✔
 
-  `POST /board/:bid?`
+`POST /board/:bid?`
 
-  ```
+```
   {
-  	"name": "",
+   "name": "",
       "avatar": "",
       "intro": "",
   }
-  ```
+```
 
 - #### 删除帖子✔
 
-  `DELETE /post/:pid`
+`DELETE /post/:pid`
 
 - #### 申请成为板块管理员✔
 
-  `POST /apply/admin`
+`POST /apply/admin`
 
-  ```
+```
   {
-  	"bid": 123,
-  	"reason": ""
+   "bid": 123,
+   "reason": ""
   }
-  ```
+```
 
 - #### 申请创建板块✔
 
-  `POST /apply/board`
+`POST /apply/board`
 
-  ```
+```
   {
-  	"name": "",
-  	"reason": ""
+   "name": "",
+   "reason": ""
   }
-  ```
+```
 
 ### notification
 
 - #### 查看通知✔
 
-  `GET /notification`
+`GET /notification`
 
 - #### 查看未读通知✔
 
-  `GET /notification/new`
+`GET /notification/new`
 
 ### message
 
 - #### 私信✔
 
-  `POST /message?receiver=<uid>`
+`POST /message?receiver=<uid>`
 
-  ```
+```
   {
-  	"content":""
+   "content":""
   }
-  ```
+```
 
-  
+
+
+### 邮件
+
+`POST /admin/email`
+
+```
+{
+	"to":[
+	"xxxx@xx.com",
+	"xxxx@xx.com",
+	...
+	],
+	c
+}
+```
+
+
+
+
+

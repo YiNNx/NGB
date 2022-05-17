@@ -40,6 +40,11 @@ func NewPost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
+	err = util.InsertES(p.Pid, p.Title, p.Content)
+	if err != nil {
+		return err
+	}
+
 	users, err := GetUsersMentioned(rec.Content)
 	for i := range users {
 		n := &model.Notification{
@@ -198,9 +203,43 @@ func GetPostsByTag(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 	tag := c.Param("tag")
+	if tag == "" {
+		return util.ErrorResponse(c, http.StatusBadRequest, "")
+
+	}
+
 	posts, err := model.GetPostsByTag(tag, limit, offset)
+
 	if err != nil {
 		tx.Rollback()
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+
+	res, err := NewPostOutlines(posts)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+
+	return util.SuccessRespond(c, http.StatusOK, res)
+}
+
+func SearchPost(c echo.Context) error {
+
+	tx := model.BeginTx()
+	defer tx.Close()
+
+	keyword := c.QueryParam("keyword")
+	pidList, err := util.SearchTitle(keyword)
+	if err != nil {
+		tx.Rollback()
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	if err != nil {
+		tx.Rollback()
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	posts, err := model.GetPostsByPidList(pidList)
+	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 

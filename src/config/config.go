@@ -14,11 +14,12 @@ var (
 
 // Config 配置
 type Config struct {
-	App        app        `yaml:"app"`
-	Postgresql postgresql `yaml:"postgresql"`
-	Jwt        jwt        `yaml:"jwt"`
-	Log        log        `yaml:"log"`
-	Mail       mail       `yaml:"mail"`
+	App           app           `yaml:"app"`
+	Postgresql    postgresql    `yaml:"postgresql"`
+	Jwt           jwt           `yaml:"jwt"`
+	Log           log           `yaml:"log"`
+	Mail          mail          `yaml:"mail"`
+	Elasticsearch elasticsearch `yaml:"elasticsearch"`
 }
 
 type app struct {
@@ -43,10 +44,15 @@ type log struct {
 }
 
 type mail struct {
-	Host     string `yaml:"host"`
-	Addr     string `yaml:"addr"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
+	Host      string `yaml:"host"`
+	Addr      string `yaml:"addr"`
+	Username  string `yaml:"username"`
+	Password  string `yaml:"password"`
+	Goroutine int    `yaml:"goroutine"`
+}
+
+type elasticsearch struct {
+	Index string `yaml:"index"`
 }
 
 func init() {

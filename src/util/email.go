@@ -1,135 +1,126 @@
 package util
 
 import (
-	"fmt"
 	"github.com/jordan-wright/email"
-	"math/rand"
 	"net/smtp"
 	"net/textproto"
 	"ngb/config"
-	"strconv"
+	"sync"
 	"time"
 )
 
 var (
-	Host     string = config.C.Mail.Host
-	Addr     string = config.C.Mail.Addr
-	Username string = config.C.Mail.Username
-	Password string = config.C.Mail.Password
+	host     string = config.C.Mail.Host
+	addr     string = config.C.Mail.Addr
+	username string = config.C.Mail.Username
+	password string = config.C.Mail.Password
 
-	coroutineNum int = 10
+	coroutine int = config.C.Mail.Goroutine
+
+	wg    sync.WaitGroup
+	count int
 )
 
-func SendEmail() {
+func EmailPool(emailList []string, subject string, text string) ([]*Result, error) {
+	Logger.Debug("1")
+	var emailChan = make(chan *email.Email, 100)
+	var resChan = make(chan *Result, 100)
+	count = 0
 
-	e := &email.Email{
-		To:      []string{"2436201947@qq.com"},
-		From:    Username,
-		Subject: "Email Send Test",
-		Text:    []byte("Text Body is, of course, supported!"),
-		HTML:    []byte("<h1>This a test email</h1>"),
-		Headers: textproto.MIMEHeader{},
-	}
-
-	err := e.Send(Addr, smtp.PlainAuth("", Username, Password, Host))
+	p, err := email.NewPool(addr, 1, smtp.PlainAuth("", username, password, host))
 	if err != nil {
-		Logger.Error(err)
+		return nil, err
 	}
+
+	wg.Add(1)
+	go pushToPool(emailList, subject, text, emailChan)
+
+	for i := 0; i < coroutine; i++ {
+		wg.Add(1)
+		go send(p, emailChan, resChan, len(emailList))
+	}
+
+	var res []*Result
+
+	wg.Add(1)
+	go handleRes(resChan, &res)
+
+	wg.Wait()
+	return res, nil
 }
 
-var ch chan *email.Email
+func pushToPool(emailList []string, subject string, text string, emailChan chan *email.Email) {
+	Logger.Debug("2")
 
-var EmailList []string
-
-func PushToPool() {
-	if EmailList == nil {
+	defer wg.Done()
+	if emailList == nil {
 		return
 	}
-	for i, _ := range EmailList {
+	for i, _ := range emailList {
 		e := &email.Email{
-			To:      []string{EmailList[i]},
-			From:    Username,
-			Subject: "Email Send Test",
-			Text:    []byte("Text Body is, of course, supported!"),
-			HTML:    []byte("<h1>This a test email</h1>"),
+			To:      []string{emailList[i]},
+			From:    username,
+			Subject: subject,
+			Text:    []byte(text),
 			Headers: textproto.MIMEHeader{},
 		}
-		ch <- e
+		emailChan <- e
 	}
+	close(emailChan)
 }
 
-func Send(p *email.Pool) {
-	for e := range ch {
+func send(p *email.Pool, emailChan chan *email.Email, resChan chan *Result, total int) {
+	Logger.Debug("3")
+
+	defer wg.Done()
+	for {
+		e, ok := <-emailChan
+		if !ok {
+			break
+		}
 		err := p.Send(e, 10*time.Second)
-		if err != nil {
-			Logger.Error(err)
+		res := &Result{
+			Email: e.To,
+			Time:  time.Now(),
+			err:   err,
+		}
+
+		resChan <- res
+		count += 1
+		if count == total {
+			close(resChan)
 		}
 	}
 }
 
-func EmailPool() {
-	p, err := email.NewPool(
-		Addr,
-		4,
-		smtp.PlainAuth("", Username, Password, Host),
-	)
-	if err != nil {
-		Logger.Error(err)
-	}
-	for i := 0; i < 4; i++ {
-		go PushToPool()
-		go Send(p)
-	}
+type Result struct {
+	Email  []string
+	Time   time.Time
+	Status bool
+	err    error
+	Error  string
 }
 
-//-------------------------------------------
+func handleRes(resChan chan *Result, res *[]*Result) {
+	Logger.Debug("4")
+	defer wg.Done()
 
-type Message struct {
-	Id   int
-	Name string
-}
-
-func Test2() {
-	messages := make(chan Message, 100)
-	result := make(chan error, 100)
-
-	// 创建任务处理Worker
-	for i := 0; i < coroutineNum; i++ {
-		go worker(i, messages, result)
-	}
-
-	total := 0
-	// 发布任务
-	for k := 1; k <= 100; k++ {
-		messages <- Message{Id: k, Name: "job" + strconv.Itoa(k)}
-		total += 1
-	}
-
-	close(messages)
-
-	// 接收任务处理结果
-	for j := 1; j <= total; j++ {
-		res := <-result
-		if res != nil {
-			fmt.Println(res.Error())
+	for {
+		r, ok := <-resChan
+		if !ok {
+			break
 		}
+		if r.err != nil {
+			r.Status = false
+			r.Error = r.err.Error()
+			Logger.Error(r.Email, "send error: ", r.Error)
+		} else {
+			r.Status = true
+			Logger.Info(r.Email, "successfully send!")
+		}
+
+		*res = append(*res, r)
+		Logger.Debug("5")
 	}
-
-	close(result)
-}
-
-func worker(worker int, msg chan Message, result chan error) {
-	// 从通道 chan Message 中监听&接收新的任务
-	for job := range msg {
-		fmt.Println("worker:", worker, "msg: ", job.Id, ":", job.Name)
-
-		time.Sleep(time.Second * time.Duration(RandInt(1, 3)))
-
-		result <- nil
-	}
-}
-
-func RandInt(min, max int) int {
-	rand.Seed(time.Now().UnixNano())
-	return min + rand.Intn(max-min+1)
+	Logger.Debug("6")
 }

@@ -20,3 +20,7 @@ mail:
   port : ""
   username : ""
   password : ""
+
+
+elasticsearch:
+  index: ""

@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"github.com/go-pg/pg/v10"
 	"time"
 )
 
@@ -60,6 +61,20 @@ func GetPostsByBoard(bid int, limit int, offset int) ([]Post, error) {
 	err := tx.Model(&posts).
 		Where("board = ?", bid).
 		Limit(limit).Offset(offset).Select()
+	if err != nil {
+		return nil, err
+	}
+	return posts, nil
+}
+
+func GetPostsByPidList(pids []int) ([]Post, error) {
+	if pids == nil {
+		return nil, nil
+	}
+	var posts []Post
+	err := tx.Model(&posts).
+		Where("pid in (?)", pg.In(pids)).
+		Select()
 	if err != nil {
 		return nil, err
 	}

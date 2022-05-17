@@ -14,6 +14,7 @@ func initPostRouter(e *echo.Echo) {
 	g := e.Group("/post")
 
 	g.GET("", controller.GetPostsByTag)
+	g.GET("/search", controller.SearchPost)
 	g.GET("/all", controller.GetAllPosts)
 	g.GET("/:pid", controller.GetPost)
 

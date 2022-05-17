@@ -13,52 +13,6 @@ import (
 	"time"
 )
 
-//--------- Http Api ---------
-
-func SendMessage(c echo.Context) error {
-	tx := model.BeginTx()
-	defer tx.Close()
-
-	receiver, err := strconv.Atoi(c.QueryParam("receiver"))
-	if err != nil {
-		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
-	}
-	sender := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
-	rec := new(receiveMessage)
-	if err := c.Bind(rec); err != nil {
-		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
-	}
-	if err := validate.Struct(rec); err != nil {
-		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
-	}
-
-	m := &model.Message{
-		Sender:   sender,
-		Receiver: receiver,
-		Content:  rec.Content,
-	}
-	if err := model.Insert(m); err != nil {
-		tx.Rollback()
-		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	n := &model.Notification{
-		Uid:       receiver,
-		Type:      model.TypeMessage,
-		ContentId: m.Mid,
-	}
-	if err := model.Insert(n); err != nil {
-		tx.Rollback()
-		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
-	}
-
-	return util.SuccessRespond(c, http.StatusOK, m)
-}
-
-// --------------- WebSocket Api --------------
-
-// Hub maintains the set of active clients and broadcasts messages to the
-// clients.
 type Hub struct {
 	// Registered clients.
 	clients map[string]*Client
@@ -251,4 +205,46 @@ func Chat(c echo.Context) error {
 	wg.Add(1)
 	wg.Wait()
 	return nil
+}
+
+//--------- Old Http Api ---------
+
+func SendMessage(c echo.Context) error {
+	tx := model.BeginTx()
+	defer tx.Close()
+
+	receiver, err := strconv.Atoi(c.QueryParam("receiver"))
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	sender := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	rec := new(receiveMessage)
+	if err := c.Bind(rec); err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	if err := validate.Struct(rec); err != nil {
+		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	m := &model.Message{
+		Sender:   sender,
+		Receiver: receiver,
+		Content:  rec.Content,
+	}
+	if err := model.Insert(m); err != nil {
+		tx.Rollback()
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+
+	n := &model.Notification{
+		Uid:       receiver,
+		Type:      model.TypeMessage,
+		ContentId: m.Mid,
+	}
+	if err := model.Insert(n); err != nil {
+		tx.Rollback()
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+
+	return util.SuccessRespond(c, http.StatusOK, m)
 }
