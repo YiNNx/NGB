@@ -46,6 +46,7 @@ func GetPostsByTag(tag string, limit int, offset int) ([]Post, error) {
 }
 
 func GetPostsByUid(uid int) ([]Post, error) {
+
 	var posts []Post
 	err := tx.Model(&posts).
 		Where("author = ?", uid).

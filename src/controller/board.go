@@ -12,13 +12,13 @@ func GetAllBoards(c echo.Context) error {
 	tx := model.BeginTx()
 	defer tx.Close()
 
-	var boards *[]model.Board
-	err := model.GetAll(boards)
+	var boards []model.Board
+	err := model.GetAll(&boards)
 	if err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
-	res := NewBoardOutlines(*boards)
+	res := NewBoardOutlines(boards)
 	return util.SuccessRespond(c, http.StatusOK, res)
 }
 

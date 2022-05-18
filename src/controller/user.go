@@ -278,14 +278,14 @@ func GetAllUsers(c echo.Context) error {
 	tx := model.BeginTx()
 	defer tx.Close()
 
-	var users *[]model.User
-	err := model.GetAll(users)
+	var users []model.User
+	err := model.GetAll(&users)
 	if err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	usersInfo := NewUserInfos(*users)
+	usersInfo := NewUserInfos(users)
 	return util.SuccessRespond(c, http.StatusOK, usersInfo)
 }
 
@@ -437,6 +437,7 @@ func GetNotification(c echo.Context) error {
 			}
 		}
 		if noti[i].Type == 1 {
+
 			m := &model.Message{Mid: noti[i].ContentId}
 			err := model.GetByPK(m)
 			if err != nil {

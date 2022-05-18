@@ -27,6 +27,7 @@ services:
       - "8080:8888"
     depends_on:
       - postgres_test
+
   headless:
       image: rendora/chrome-headless:latest
       network_mode: "host"
@@ -38,5 +39,15 @@ services:
       volumes:
           - ./env/config/rendora.yml:/etc/rendora/config.yaml
 
-
-
+  elasticsearch:
+    image: elasticsearch:7.6.2
+    container_name: elasticsearch
+    environment:
+      - "cluster.name=elasticsearch"
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m" 
+    volumes:
+      - ./env/elasticsearch/plugins:/usr/share/elasticsearch/plugins
+      - ./data/elasticsearch:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"

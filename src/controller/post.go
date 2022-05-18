@@ -229,7 +229,7 @@ func SearchPost(c echo.Context) error {
 	defer tx.Close()
 
 	keyword := c.QueryParam("keyword")
-	pidList, err := util.SearchTitle(keyword)
+	pidList, err := util.Search(keyword)
 	if err != nil {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -440,9 +440,6 @@ func SubCommentPost(c echo.Context) error {
 }
 
 func paginate(c echo.Context) (int, int, error) {
-	tx := model.BeginTx()
-	defer tx.Close()
-
 	a, p := c.QueryParam("amount"), c.QueryParam("page")
 	if a == "" {
 		a = "10"

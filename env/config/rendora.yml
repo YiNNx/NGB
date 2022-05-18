@@ -1,14 +1,16 @@
 target:
     url: "http://127.0.0.1" 
 backend:
-    url: "http://127.0.0.1:8080"
+    url: "http://127.0.0.1:8888"
 
 filters:
     userAgent:
         defaultPolicy: blacklist
         exceptions:
             keywords:
+                - google
+                - bing
                 - bot
                 - slurp
-                - bing
                 - crawler
+                - spider

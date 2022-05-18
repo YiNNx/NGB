@@ -16,10 +16,11 @@ log:
   file: ""
 
 mail:
-  host : ""
-  port : ""
+  host : "smtp.xxx.com"
+  port : "smtp.xxx.com:587"
   username : ""
   password : ""
+  goroutine: 10
 
 
 elasticsearch:

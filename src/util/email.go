@@ -16,15 +16,17 @@ var (
 	password string = config.C.Mail.Password
 
 	coroutine int = config.C.Mail.Goroutine
+	total     int
+	count     int
 
-	wg    sync.WaitGroup
-	count int
+	wg sync.WaitGroup
 )
 
 func EmailPool(emailList []string, subject string, text string) ([]*Result, error) {
-	Logger.Debug("1")
 	var emailChan = make(chan *email.Email, 100)
 	var resChan = make(chan *Result, 100)
+
+	total = len(emailList)
 	count = 0
 
 	p, err := email.NewPool(addr, 1, smtp.PlainAuth("", username, password, host))
@@ -37,7 +39,7 @@ func EmailPool(emailList []string, subject string, text string) ([]*Result, erro
 
 	for i := 0; i < coroutine; i++ {
 		wg.Add(1)
-		go send(p, emailChan, resChan, len(emailList))
+		go send(p, emailChan, resChan)
 	}
 
 	var res []*Result
@@ -50,8 +52,6 @@ func EmailPool(emailList []string, subject string, text string) ([]*Result, erro
 }
 
 func pushToPool(emailList []string, subject string, text string, emailChan chan *email.Email) {
-	Logger.Debug("2")
-
 	defer wg.Done()
 	if emailList == nil {
 		return
@@ -69,8 +69,15 @@ func pushToPool(emailList []string, subject string, text string, emailChan chan 
 	close(emailChan)
 }
 
-func send(p *email.Pool, emailChan chan *email.Email, resChan chan *Result, total int) {
-	Logger.Debug("3")
+type Result struct {
+	Email  []string
+	Time   time.Time
+	Status bool
+	err    error
+	Error  string
+}
+
+func send(p *email.Pool, emailChan chan *email.Email, resChan chan *Result) {
 
 	defer wg.Done()
 	for {
@@ -93,16 +100,7 @@ func send(p *email.Pool, emailChan chan *email.Email, resChan chan *Result, tota
 	}
 }
 
-type Result struct {
-	Email  []string
-	Time   time.Time
-	Status bool
-	err    error
-	Error  string
-}
-
 func handleRes(resChan chan *Result, res *[]*Result) {
-	Logger.Debug("4")
 	defer wg.Done()
 
 	for {
@@ -120,7 +118,5 @@ func handleRes(resChan chan *Result, res *[]*Result) {
 		}
 
 		*res = append(*res, r)
-		Logger.Debug("5")
 	}
-	Logger.Debug("6")
 }

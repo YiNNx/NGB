@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
-	"log"
 	"ngb/config"
 	"strconv"
 )
@@ -55,7 +53,7 @@ func InsertES(pid int, title string, content string) error {
 	return nil
 }
 
-func SearchTitle(keyword string) ([]int, error) {
+func Search(keyword string) ([]int, error) {
 	var buf bytes.Buffer
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
@@ -90,14 +88,13 @@ func SearchTitle(keyword string) ([]int, error) {
 		return nil, err
 	}
 	defer res.Body.Close()
-	fmt.Println(res.String())
 
 	var (
 		r    map[string]interface{}
 		pids []int
 	)
 	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
-		log.Fatalf("Error parsing the response body: %s", err)
+		return nil, err
 	}
 
 	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {

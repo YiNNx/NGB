@@ -6,6 +6,7 @@ import (
 	"ngb/config"
 	"ngb/model"
 	"ngb/router"
+	"ngb/util"
 )
 
 func main() {
@@ -18,6 +19,5 @@ func main() {
 
 	router.InitRouters(e)
 
-	e.Logger.Fatal(e.Start(config.C.App.Addr))
-
+	util.Logger.Fatal(e.Start(config.C.App.Addr))
 }

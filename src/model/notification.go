@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 //Notification Type:
 //	1 - 私信
@@ -34,14 +36,14 @@ type Message struct {
 	Content  string
 }
 
-func GetNotificationsByUid(uid int, limit int, offset int) ([]Notification, error) {
-	var notifications []Notification
-	err := tx.Model(&notifications).
+func GetNotificationsByUid(uid int, limit int, offset int) (notifications []Notification, err error) {
+	err = tx.Model(&notifications).
 		Where("uid = ?", uid).
-		Limit(limit).Offset(offset).Select()
+		Select()
 	if err != nil {
 		return nil, err
 	}
+
 	return notifications, nil
 }
 

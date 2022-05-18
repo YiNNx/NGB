@@ -68,11 +68,7 @@ type Transaction struct {
 }
 
 func BeginTx() *Transaction {
-	var err error
-	tx, err = db.Begin()
-	if err != nil {
-		util.Logger.Error("tx-begin failed:" + err.Error())
-	}
+	tx, _ = db.Begin()
 	trans := &Transaction{
 		Tx:    tx,
 		abort: false,
