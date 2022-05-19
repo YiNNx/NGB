@@ -1,27 +1,26 @@
 app:
-  addr: ""
+  addr: ":8080"
 
 postgresql:
-  user: ""
-  password: ""
+  user: "postgres"
+  password: "080502"
   dbname: "ngb_beta"
-  host: ""
-  port: ""
+  host: "ngb_postgres"
+  port: "5432"
 
 jwt:
-  secret: ""
+  secret: "2333333"
 
 log:
-  path: ""
-  file: ""
+  path: "log"
+  file: "log"
 
 mail:
-  host : "smtp.xxx.com"
-  port : "smtp.xxx.com:587"
-  username : ""
-  password : ""
-  goroutine: 10
-
+  host : "smtp.qq.com"
+  addr : "smtp.qq.com:587"
+  username : "2436201947@qq.com"
+  password : "fidrbfeotqiyebbg"
+  goroutine: 3
 
 elasticsearch:
-  index: ""
+  index: "ngb_post"

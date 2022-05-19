@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  postgres_test: 
+  postgres: 
     image: postgres:14
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -13,20 +13,6 @@ services:
     container_name: ngb_postgres
     expose:
       - "5432"
-  ngb_beta_app:
-    image: ngb_beta
-    build: .
-    environment:
-      - TZ=Asia/Shanghai
-      - ENV=default
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ./src:/src
-      - ./env:/env
-    ports:
-      - "8080:8888"
-    depends_on:
-      - postgres_test
 
   headless:
       image: rendora/chrome-headless:latest
@@ -51,3 +37,20 @@ services:
       - ./data/elasticsearch:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
+
+  ngb_app:
+    build: .
+    environment:
+      - TZ=Asia/Shanghai
+      - ENV=config
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./src:/src
+      - ./env:/env
+    ports:
+      - "8080:8888"
+    depends_on:
+      - postgres
+      - elasticsearch
+      - rendora
+

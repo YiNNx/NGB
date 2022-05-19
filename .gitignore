@@ -1,6 +1,7 @@
 /.idea
 /log
 /analysis-ik
+/data
 
 go.sum
 
