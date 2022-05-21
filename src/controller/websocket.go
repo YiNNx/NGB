@@ -8,12 +8,10 @@ import (
 	"net/http"
 	"ngb/model"
 	"ngb/util"
+	"ngb/util/log"
 	"strconv"
-	"sync"
 	"time"
 )
-
-var wg sync.WaitGroup
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -24,14 +22,14 @@ func Chat(c echo.Context) error {
 
 	with, err := strconv.Atoi(c.QueryParam("with"))
 	if err != nil {
-		util.Logger.Error(err)
+		log.Logger.Error(err)
 		return err
 	}
 	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
 
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		util.Logger.Error(err)
+		log.Logger.Error(err)
 		return err
 	}
 
@@ -41,9 +39,8 @@ func Chat(c echo.Context) error {
 	go readClient.ReadMsg()
 	go writeClient.WriteMsg()
 
-	wg.Add(1)
-	wg.Wait()
-	return nil
+	for {
+	}
 }
 
 type Hub struct {
@@ -123,15 +120,15 @@ func (c *Client) ReadMsg() {
 		_, content, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure) {
-				util.Logger.Error(err)
+				log.Logger.Error(err)
 			}
-			util.Logger.Info(err)
+			log.Logger.Info(err)
 			break
 		}
 		var rec Message
 		err = json.Unmarshal(content, &rec)
 		if err != nil {
-			util.Logger.Error(err)
+			log.Logger.Error(err)
 		}
 		msg := &model.Message{
 			Time:     time.Now(),
@@ -142,7 +139,7 @@ func (c *Client) ReadMsg() {
 
 		if err := model.Insert(msg); err != nil {
 			tx.Rollback()
-			util.Logger.Error(err)
+			log.Logger.Error(err)
 		}
 
 		hub.broadcast <- msg
@@ -154,7 +151,7 @@ func (c *Client) ReadMsg() {
 		}
 		if err := model.Insert(n); err != nil {
 			tx.Rollback()
-			util.Logger.Error(err)
+			log.Logger.Error(err)
 		}
 		tx.Close()
 	}
@@ -174,7 +171,7 @@ func (c *Client) WriteMsg() {
 
 		err := c.conn.WriteJSON(msg)
 		if err != nil {
-			util.Logger.Error(err)
+			log.Logger.Error(err)
 		}
 	}
 }
@@ -252,4 +249,3 @@ func SendMessage(c echo.Context) error {
 
 	return util.SuccessRespond(c, http.StatusOK, m)
 }
-

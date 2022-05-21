@@ -7,6 +7,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"ngb/config"
+	"ngb/util/log"
 	"strconv"
 )
 
@@ -16,9 +17,9 @@ func initEs() {
 	var err error
 	es, err = elasticsearch.NewDefaultClient()
 	if err != nil {
-		Logger.Error("Error creating the client: %s", err)
+		log.Logger.Error("Error creating the client: %s", err)
 	}
-	Logger.Info("elasticsearch started")
+	log.Logger.Info("elasticsearch started")
 }
 
 func buf(title string, content string) (bytes.Buffer, error) {

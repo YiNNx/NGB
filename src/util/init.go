@@ -1,7 +1,13 @@
 package util
 
-func init() {
-	initLog()
-	initEs()
+import (
+	"github.com/jordan-wright/email"
+)
 
+var pool *email.Pool
+
+func init() {
+	//log.InitLog()
+	initEs()
+	initEmail()
 }

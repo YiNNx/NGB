@@ -5,68 +5,89 @@ import (
 	"net/smtp"
 	"net/textproto"
 	"ngb/config"
+	"ngb/model"
+	"ngb/util/log"
 	"sync"
 	"time"
 )
 
 var (
-	host     string = config.C.Mail.Host
-	addr     string = config.C.Mail.Addr
-	username string = config.C.Mail.Username
-	password string = config.C.Mail.Password
+	host     = config.C.Mail.Host
+	addr     = config.C.Mail.Addr
+	username = config.C.Mail.Username
+	password = config.C.Mail.Password
 
-	coroutine int = config.C.Mail.Goroutine
-	total     int
-	count     int
+	coroutine = config.C.Mail.Goroutine
 
 	wg sync.WaitGroup
+
+	hub = make(chan *sending, 100)
 )
 
-func EmailPool(emailList []string, subject string, text string) ([]*Result, error) {
-	var emailChan = make(chan *email.Email, 100)
-	var resChan = make(chan *Result, 100)
+type sending struct {
+	emailList []string
 
-	total = len(emailList)
-	count = 0
+	subject string
+	text    string
 
-	p, err := email.NewPool(addr, 1, smtp.PlainAuth("", username, password, host))
+	resChan chan *Result
+}
+
+func initEmail() {
+	var err error
+	pool, err = email.NewPool(addr, 1, smtp.PlainAuth("", username, password, host))
 	if err != nil {
-		return nil, err
+		log.Logger.Error(err)
 	}
-
-	wg.Add(1)
-	go pushToPool(emailList, subject, text, emailChan)
 
 	for i := 0; i < coroutine; i++ {
-		wg.Add(1)
-		go send(p, emailChan, resChan)
+		go send()
 	}
 
-	var res []*Result
+	failList, subject, text := model.RedisReadFailList()
+	if failList != nil {
+		res, err := EmailPool(failList, subject, text)
+		if err != nil {
+			log.Logger.Error(err)
+		}
+		for i, _ := range res {
+			log.Logger.Info(res[i].Email, res[i].Status, res[i].Error)
+		}
+	}
+}
+
+func EmailPool(emailList []string, subject string, text string) ([]*Result, error) {
+	resultList := make(map[string]bool)
+	for i, _ := range emailList {
+		resultList[emailList[i]] = false
+	}
+	defer handlePanic(resultList, subject, text)
+
+	if emailList == nil {
+		return nil, nil
+	}
+
+	emailSending := &sending{
+		emailList: emailList,
+		subject:   subject,
+		text:      text,
+		resChan:   make(chan *Result, 100),
+	}
 
 	wg.Add(1)
-	go handleRes(resChan, &res)
+	go pushToPool(emailSending)
+
+	var res []*Result
+	wg.Add(1)
+	go handleRes(&res, &resultList, emailSending.resChan)
 
 	wg.Wait()
 	return res, nil
 }
 
-func pushToPool(emailList []string, subject string, text string, emailChan chan *email.Email) {
+func pushToPool(emailSending *sending) {
 	defer wg.Done()
-	if emailList == nil {
-		return
-	}
-	for i, _ := range emailList {
-		e := &email.Email{
-			To:      []string{emailList[i]},
-			From:    username,
-			Subject: subject,
-			Text:    []byte(text),
-			Headers: textproto.MIMEHeader{},
-		}
-		emailChan <- e
-	}
-	close(emailChan)
+	hub <- emailSending
 }
 
 type Result struct {
@@ -77,30 +98,30 @@ type Result struct {
 	Error  string
 }
 
-func send(p *email.Pool, emailChan chan *email.Email, resChan chan *Result) {
-
-	defer wg.Done()
+func send() {
 	for {
-		e, ok := <-emailChan
-		if !ok {
-			break
+		s := <-hub
+		for i, _ := range s.emailList {
+			e := &email.Email{
+				To:      []string{s.emailList[i]},
+				From:    username,
+				Subject: s.subject,
+				Text:    []byte(s.text),
+				Headers: textproto.MIMEHeader{},
+			}
+			err := pool.Send(e, 10*time.Second)
+			res := &Result{
+				Email: e.To,
+				Time:  time.Now(),
+				err:   err,
+			}
+			s.resChan <- res
 		}
-		err := p.Send(e, 10*time.Second)
-		res := &Result{
-			Email: e.To,
-			Time:  time.Now(),
-			err:   err,
-		}
-
-		resChan <- res
-		count += 1
-		if count == total {
-			close(resChan)
-		}
+		close(s.resChan)
 	}
 }
 
-func handleRes(resChan chan *Result, res *[]*Result) {
+func handleRes(res *[]*Result, resultList *map[string]bool, resChan chan *Result) {
 	defer wg.Done()
 
 	for {
@@ -111,12 +132,27 @@ func handleRes(resChan chan *Result, res *[]*Result) {
 		if r.err != nil {
 			r.Status = false
 			r.Error = r.err.Error()
-			Logger.Error(r.Email, "send error: ", r.Error)
+			log.Logger.Error(r.Email, "send error: ", r.Error)
 		} else {
 			r.Status = true
-			Logger.Info(r.Email, "successfully send!")
+			log.Logger.Info(r.Email, "successfully send!")
 		}
-
+		for i, _ := range r.Email {
+			(*resultList)[r.Email[i]] = true
+		}
 		*res = append(*res, r)
+	}
+}
+
+func handlePanic(sendList map[string]bool, subject string, text string) {
+	var failList []string
+	for i, _ := range sendList {
+		if (sendList)[i] == false {
+			log.Logger.Error("email hasn't been sent:", i)
+			failList = append(failList, i)
+		}
+	}
+	if failList != nil {
+		model.RedisSetFailList(failList, subject, text)
 	}
 }

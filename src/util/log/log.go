@@ -1,4 +1,4 @@
-package util
+package log
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ import (
 
 var Logger *logrus.Logger
 
-func initLog() {
+func init() {
 	Logger = getLogger()
 	Logger.Info("logger started")
 }

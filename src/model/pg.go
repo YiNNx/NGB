@@ -5,7 +5,7 @@ import (
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
 	"ngb/config"
-	"ngb/util"
+	"ngb/util/log"
 )
 
 var db *pg.DB
@@ -19,32 +19,24 @@ func init() {
 
 // Connect database
 func Connect() *pg.DB {
-	connection := "postgresql://" +
-		config.C.Postgresql.User + ":" +
-		config.C.Postgresql.Password + "@" +
-		config.C.Postgresql.Host + ":" +
-		config.C.Postgresql.Port + "/" +
-		config.C.Postgresql.Dbname
-
-	opt, err := pg.ParseURL(connection + "?sslmode=disable")
-	if err != nil {
-		panic(err)
-	}
-
-	db := pg.Connect(opt)
-
+	db = pg.Connect(&pg.Options{
+		Addr:     config.C.Postgresql.Host + ":" + config.C.Postgresql.Port,
+		User:     config.C.Postgresql.User,
+		Password: config.C.Postgresql.Password,
+		Database: config.C.Postgresql.Dbname,
+	})
 	var n int
 	if _, err := db.QueryOne(pg.Scan(&n), "SELECT 1"); err != nil {
-		panic(err)
+		log.Logger.Panic("Postgresql-connection failed")
 	}
-
+	log.Logger.Info("Postgresql connected")
 	return db
 }
 
 // Close database
 func Close() {
 	if err := db.Close(); err != nil {
-		util.Logger.Panic("Postgresql-close failed")
+		log.Logger.Panic("Postgresql-close failed")
 	}
 }
 
@@ -87,7 +79,7 @@ func BeginTx() *Transaction {
 func (trans *Transaction) Rollback() {
 	err := trans.Tx.Rollback()
 	if err != nil {
-		util.Logger.Error("tx-close failed:" + err.Error())
+		log.Logger.Error("tx-close failed:" + err.Error())
 	}
 	trans.abort = true
 	tx = nil
@@ -97,12 +89,12 @@ func (trans *Transaction) Close() {
 	if trans.abort == false {
 		err := trans.Tx.Commit()
 		if err != nil {
-			util.Logger.Error("tx-commit failed:" + err.Error())
+			log.Logger.Error("tx-commit failed:" + err.Error())
 		}
 	}
 	err := trans.Tx.Close()
 	if err != nil {
-		util.Logger.Error("tx-close failed:" + err.Error())
+		log.Logger.Error("tx-close failed:" + err.Error())
 	}
 	tx = nil
 }

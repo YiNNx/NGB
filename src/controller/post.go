@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"ngb/model"
 	"ngb/util"
+	"ngb/util/log"
 	"regexp"
 	"strconv"
 )
@@ -54,7 +55,7 @@ func NewPost(c echo.Context) error {
 		}
 		if err := model.Insert(n); err != nil {
 			tx.Rollback()
-			util.Logger.Info("http-response:" + err.Error())
+			log.Logger.Info("http-response:" + err.Error())
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 	}
@@ -72,7 +73,7 @@ func NewPost(c echo.Context) error {
 		}
 		if err := model.Insert(n); err != nil {
 			tx.Rollback()
-			util.Logger.Info("http-response:" + err.Error())
+			log.Logger.Info("http-response:" + err.Error())
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 	}
@@ -141,11 +142,11 @@ func GetPost(c echo.Context) error {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
-	util.Logger.Error("here")
+	log.Logger.Error("here")
 
 	_, likesCount, err := model.GetLikesOfPost(pid)
 	if err != nil {
-		util.Logger.Error("er")
+		log.Logger.Error("er")
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
@@ -153,7 +154,7 @@ func GetPost(c echo.Context) error {
 	_, commentsCount, err := model.GetCommentsOfPost(pid)
 	if err != nil {
 		tx.Rollback()
-		util.Logger.Error("er!")
+		log.Logger.Error("er!")
 
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
@@ -276,13 +277,13 @@ func CollectPost(c echo.Context) error {
 		}
 		if err := model.InsertLikeOrCollection(co, pid, uid); err != nil {
 			tx.Rollback()
-			util.Logger.Info("http-response:" + err.Error())
+			log.Logger.Info("http-response:" + err.Error())
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 	} else {
 		if err := model.DeleteLikeOrCollection(&model.Collection{}, pid, uid); err != nil {
 			tx.Rollback()
-			util.Logger.Info("http-response:" + err.Error())
+			log.Logger.Info("http-response:" + err.Error())
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 	}

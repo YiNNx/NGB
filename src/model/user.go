@@ -3,7 +3,8 @@ package model
 import (
 	"errors"
 	"github.com/go-pg/pg/v10"
-	"ngb/util"
+	"ngb/util/bcrypt"
+
 	"time"
 )
 
@@ -40,7 +41,7 @@ func ValidateUser(email string, pwd string) (*User, error) {
 	if err := tx.Model(u).Where("email = ?", email).Select(); err != nil {
 		return nil, err
 	}
-	err := util.ValidatePwd(pwd, u.PwdHash)
+	err := bcrypt.ValidatePwd(pwd, u.PwdHash)
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"ngb/model"
 	"ngb/util"
+	"ngb/util/bcrypt"
 	"strconv"
 )
 
@@ -22,7 +23,7 @@ func SignUP(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	pwdHash, err := util.PwdHash(rec.Pwd)
+	pwdHash, err := bcrypt.PwdHash(rec.Pwd)
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
@@ -226,7 +227,7 @@ func ChangeUserPwd(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 	}
 
-	pwdHashNew, err := util.PwdHash(change.PwdNew)
+	pwdHashNew, err := bcrypt.PwdHash(change.PwdNew)
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}

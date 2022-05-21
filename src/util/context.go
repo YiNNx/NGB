@@ -2,6 +2,7 @@ package util
 
 import (
 	"github.com/labstack/echo/v4"
+	"ngb/util/log"
 )
 
 type Response struct {
@@ -11,7 +12,7 @@ type Response struct {
 }
 
 func ErrorResponse(c echo.Context, code int, msg string) error {
-	Logger.Info("http-response:" + msg)
+	log.Logger.Info("http-response:" + msg)
 	return c.JSON(
 		code,
 		Response{
