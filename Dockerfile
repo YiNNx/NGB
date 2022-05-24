@@ -2,9 +2,8 @@ FROM golang:latest AS builder
 
 ENV GO111MODULE=on \
     CGO_ENABLED=0 \
-    GOPROXY=https://goproxy.cn,direct \
-    GOOS=linux \
-    GOARCH=amd64
+    GOPROXY=https://goproxy.io,direct \
+    GOOS=linux
 
 WORKDIR /src
 COPY ./src /src

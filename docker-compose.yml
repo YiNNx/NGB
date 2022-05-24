@@ -13,17 +13,20 @@ services:
     container_name: ngb_postgres
     expose:
       - "5432"
+    restart: always
+    networks:
+      - ngb
 
   headless:
-      image: rendora/chrome-headless:latest
-      network_mode: "host"
-      tmpfs:
-          - /tmp
+    image: rendora/chrome-headless:latest
+    tmpfs:
+      - /tmp
+    network_mode: "host"
   rendora:
-      image: rendora/rendora
-      network_mode: "host"
-      volumes:
-          - ./env/config/rendora.yml:/etc/rendora/config.yaml
+    image: rendora/rendora
+    volumes:
+      - ./env/config/rendora.yml:/etc/rendora/config.yaml
+    network_mode: "host"
 
   elasticsearch:
     image: elasticsearch:7.6.2
@@ -37,12 +40,31 @@ services:
       - ./data/elasticsearch:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
+    restart: always
+    networks:
+      - ngb
+
+  redis:
+    image: redis:6.2.5
+    expose:
+      - "6379"
+    environment:
+      - TZ=Asia/Shanghai
+    container_name: ngb_redis
+    volumes:
+      - ./data/redis:/data
+      - /etc/localtime:/etc/localtime:ro
+    tty: true
+    restart: always
+    networks:
+      - ngb
+
 
   ngb_app:
     build: .
     environment:
       - TZ=Asia/Shanghai
-      - ENV=config
+      - ENV=test
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./src:/src
@@ -53,4 +75,13 @@ services:
       - postgres
       - elasticsearch
       - rendora
+      - redis
+    networks:
+      - ngb
+
+networks:
+  ngb:
+    driver: overlay
+
+
 
