@@ -16,6 +16,7 @@ var (
 type Config struct {
 	App           app           `yaml:"app"`
 	Postgresql    postgresql    `yaml:"postgresql"`
+	Redis         redis         `yaml:"redis"`
 	Jwt           jwt           `yaml:"jwt"`
 	Log           log           `yaml:"log"`
 	Mail          mail          `yaml:"mail"`
@@ -32,6 +33,11 @@ type postgresql struct {
 	Dbname   string `yaml:"dbname"`
 	Host     string `yaml:"host"`
 	Port     string `yaml:"port"`
+}
+
+type redis struct {
+	Host string `yaml:"host"`
+	Port string `yaml:"port"`
 }
 
 type jwt struct {

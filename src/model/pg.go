@@ -27,7 +27,7 @@ func Connect() *pg.DB {
 	})
 	var n int
 	if _, err := db.QueryOne(pg.Scan(&n), "SELECT 1"); err != nil {
-		log.Logger.Panic("Postgresql-connection failed")
+		log.Logger.Error("Postgresql-connection failed")
 	}
 	log.Logger.Info("Postgresql connected")
 	return db

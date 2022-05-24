@@ -8,6 +8,10 @@ postgresql:
   host: ""
   port: ""
 
+redis:
+  host: ""
+  port: ""
+
 jwt:
   secret: ""
 

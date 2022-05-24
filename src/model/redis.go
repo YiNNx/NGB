@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/go-redis/redis/v7"
+	"ngb/config"
 	"ngb/util/log"
 	"time"
 )
@@ -11,7 +12,7 @@ var redisClient *redis.Client
 func init() {
 	redisClient = redis.NewClient(
 		&redis.Options{
-			Addr: "redis:6379",
+			Addr: config.C.Redis.Host + ":" + config.C.Redis.Port,
 		},
 	)
 
