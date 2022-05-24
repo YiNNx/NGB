@@ -1,10 +1,6 @@
 /.idea
 /log
-/analysis-ik
 /data
 
 go.sum
-
-TaskList.md
-env/config/default.yml
 

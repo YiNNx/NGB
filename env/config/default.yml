@@ -1,0 +1,26 @@
+app:
+  addr: ""
+
+postgresql:
+  user: ""
+  password: ""
+  dbname: "ngb_beta"
+  host: ""
+  port: ""
+
+jwt:
+  secret: ""
+
+log:
+  path: ""
+  file: ""
+
+mail:
+  host : ""
+  addr : ""
+  username : ""
+  password : ""
+  goroutine: 10
+
+elasticsearch:
+  index: ""

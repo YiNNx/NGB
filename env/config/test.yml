@@ -1,0 +1,26 @@
+app:
+  addr: ":8080"
+
+postgresql:
+  user: "postgres"
+  password: "080502"
+  dbname: "ngb_beta"
+  host: "postgres"
+  port: "5432"
+
+jwt:
+  secret: "2333333"
+
+log:
+  path: "log"
+  file: "log"
+
+mail:
+  host : "smtp.qq.com"
+  addr : "smtp.qq.com:587"
+  username : "2436201947@qq.com"
+  password : "fidrbfeotqiyebbg"
+  goroutine: 3
+
+elasticsearch:
+  index: "ngb_post"

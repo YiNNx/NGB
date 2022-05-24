@@ -17,10 +17,10 @@ func init() {
 
 	err := redisClient.Ping().Err()
 	if err != nil {
-		panic(err)
+		log.Logger.Error(err)
+	} else {
+		log.Logger.Printf("Redis server connected")
 	}
-	log.Logger.Printf("Redis server connected")
-
 }
 
 func redisErrHandler(err error) error {

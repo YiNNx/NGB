@@ -80,4 +80,5 @@ func init() {
 	}
 
 	C = config
+	fmt.Println("------- " + configFile + " loaded" + " -------")
 }
