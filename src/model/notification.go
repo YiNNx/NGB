@@ -19,7 +19,6 @@ const (
 
 type Notification struct {
 	tableName struct{}
-
 	Nid       int       `pg:",pk"`
 	Time      time.Time `pg:"default:now()"`
 	Uid       int

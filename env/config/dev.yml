@@ -28,3 +28,11 @@ mail:
 
 elasticsearch:
   index: "ngb_post"
+
+rabbitmq:
+  host: "localhost"
+  port: "5672"
+  user: "root"
+  password: "root"
+  exchange_name: "ngb_direct"
+  routing_key: "websocket"

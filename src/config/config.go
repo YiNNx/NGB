@@ -21,6 +21,7 @@ type Config struct {
 	Log           log           `yaml:"log"`
 	Mail          mail          `yaml:"mail"`
 	Elasticsearch elasticsearch `yaml:"elasticsearch"`
+	Rabbitmq      rabbitmq      `yaml:"rabbitmq"`
 }
 
 type app struct {
@@ -59,6 +60,15 @@ type mail struct {
 
 type elasticsearch struct {
 	Index string `yaml:"index"`
+}
+
+type rabbitmq struct {
+	Host         string `yaml:"host"`
+	Port         string `yaml:"port"`
+	User         string `yaml:"user"`
+	Password     string `yaml:"password"`
+	ExchangeName string `yaml:"exchange_name"`
+	RoutingKey   string `yaml:"routing_key"`
 }
 
 func init() {

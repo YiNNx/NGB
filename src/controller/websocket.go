@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-var upgrader = websocket.Upgrader{
+var upgrade = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
@@ -27,7 +27,7 @@ func Chat(c echo.Context) error {
 	}
 	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
 
-	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	ws, err := upgrade.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		log.Logger.Error(err)
 		return err
@@ -36,11 +36,12 @@ func Chat(c echo.Context) error {
 	readClient := GetClient(uid, with, ws)
 	writeClient := GetClient(with, uid, ws)
 
+	wait := make(chan bool)
 	go readClient.ReadMsg()
 	go writeClient.WriteMsg()
+	<-wait
 
-	for {
-	}
+	return nil
 }
 
 type Hub struct {
@@ -144,13 +145,12 @@ func (c *Client) ReadMsg() {
 
 		hub.broadcast <- msg
 
-		n := &model.Notification{
+		n := &Notification{
 			Uid:       c.to,
 			Type:      model.TypeMessage,
 			ContentId: msg.Mid,
 		}
-		if err := model.Insert(n); err != nil {
-			tx.Rollback()
+		if err := publicToMQ(n); err != nil {
 			log.Logger.Error(err)
 		}
 		tx.Close()
@@ -237,13 +237,12 @@ func SendMessage(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	n := &model.Notification{
+	n := &Notification{
 		Uid:       receiver,
 		Type:      model.TypeMessage,
 		ContentId: m.Mid,
 	}
-	if err := model.Insert(n); err != nil {
-		tx.Rollback()
+	if err := publicToMQ(n); err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 

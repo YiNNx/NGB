@@ -47,18 +47,14 @@ func NewPost(c echo.Context) error {
 	}
 
 	users, err := GetUsersMentioned(rec.Content)
-	for i := range users {
-		n := &model.Notification{
-			Uid:       model.TypeMentioned,
-			Type:      users[i].Uid,
-			ContentId: p.Pid,
-		}
-		if err := model.Insert(n); err != nil {
-			tx.Rollback()
-			log.Logger.Info("http-response:" + err.Error())
-			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
-		}
-	}
+	//for i := range users {
+	//	//n := &Notification{
+	//	//	Uid:       model.TypeMentioned,
+	//	//	Type:      users[i].Uid,
+	//	//	ContentId: p.Pid,
+	//	//}
+	//	//util.Public([)
+	//}
 
 	followers, err := model.GetFollowersOfUser(author)
 	if err != nil {
@@ -66,14 +62,12 @@ func NewPost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	for i := range followers {
-		n := &model.Notification{
+		n := &Notification{
 			Uid:       model.TypeNewPost,
 			Type:      users[i].Uid,
 			ContentId: p.Pid,
 		}
-		if err := model.Insert(n); err != nil {
-			tx.Rollback()
-			log.Logger.Info("http-response:" + err.Error())
+		if err := publicToMQ(n); err != nil {
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
 	}
@@ -373,13 +367,12 @@ func CommentPost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	n := &model.Notification{
+	n := &Notification{
 		Uid:       p.Author,
 		Type:      model.TypeComment,
 		ContentId: comment.Cid,
 	}
-	if err := model.Insert(n); err != nil {
-		tx.Rollback()
+	if err := publicToMQ(n); err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 

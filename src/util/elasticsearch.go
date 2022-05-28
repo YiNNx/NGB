@@ -19,7 +19,13 @@ func initEs() {
 	if err != nil {
 		log.Logger.Error("Error creating the client: %s", err)
 	}
-	log.Logger.Info("elasticsearch started")
+
+	_, err = es.Info()
+	if err != nil {
+		log.Logger.Error("Error getting response: %s", err)
+	} else {
+		log.Logger.Info("elasticsearch started")
+	}
 }
 
 func buf(title string, content string) (bytes.Buffer, error) {

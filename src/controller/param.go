@@ -306,3 +306,11 @@ type receiveSendEmail struct {
 	Subject string   `json:"subject" validate:"required"`
 	Content string   `json:"content" validate:"required"`
 }
+
+type Notification struct {
+	Time      time.Time
+	Uid       int
+	Type      int
+	ContentId int //私信为mid,关注人发帖和@为pid,评论为cid
+	Status    int //0未读 1已读
+}
