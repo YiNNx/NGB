@@ -10,6 +10,13 @@ import (
 	"time"
 )
 
+var switchType = map[int]string{
+	model.TypeMessage:   "message",
+	model.TypeComment:   "comment",
+	model.TypeMentioned: "mentioned",
+	model.TypeNewPost:   "new_post",
+}
+
 func publicToMQ(n *Notification) error {
 	n.Time = time.Now()
 	nBytes, err := json.Marshal(n)
@@ -17,7 +24,7 @@ func publicToMQ(n *Notification) error {
 		return err
 	}
 
-	err = util.Public(nBytes)
+	err = util.Public(nBytes, switchType[n.Type])
 	if err != nil {
 		return err
 	}

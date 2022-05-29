@@ -47,14 +47,16 @@ func NewPost(c echo.Context) error {
 	}
 
 	users, err := GetUsersMentioned(rec.Content)
-	//for i := range users {
-	//	//n := &Notification{
-	//	//	Uid:       model.TypeMentioned,
-	//	//	Type:      users[i].Uid,
-	//	//	ContentId: p.Pid,
-	//	//}
-	//	//util.Public([)
-	//}
+	for i := range users {
+		n := &Notification{
+			Uid:       users[i].Uid,
+			Type:      model.TypeMentioned,
+			ContentId: p.Pid,
+		}
+		if err := publicToMQ(n); err != nil {
+			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+		}
+	}
 
 	followers, err := model.GetFollowersOfUser(author)
 	if err != nil {
@@ -63,8 +65,8 @@ func NewPost(c echo.Context) error {
 	}
 	for i := range followers {
 		n := &Notification{
-			Uid:       model.TypeNewPost,
-			Type:      users[i].Uid,
+			Uid:       users[i].Uid,
+			Type:      model.TypeNewPost,
 			ContentId: p.Pid,
 		}
 		if err := publicToMQ(n); err != nil {
