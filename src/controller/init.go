@@ -5,9 +5,3 @@ import (
 )
 
 var validate = validator.New()
-var hub = newHub()
-
-func init() {
-
-	go hub.run()
-}

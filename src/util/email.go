@@ -21,7 +21,7 @@ var (
 
 	wg sync.WaitGroup
 
-	hub = make(chan *sending, 100)
+	emailHub = make(chan *sending, 100)
 )
 
 type sending struct {
@@ -87,7 +87,7 @@ func EmailPool(emailList []string, subject string, text string) ([]*Result, erro
 
 func pushToPool(emailSending *sending) {
 	defer wg.Done()
-	hub <- emailSending
+	emailHub <- emailSending
 }
 
 type Result struct {
@@ -100,7 +100,7 @@ type Result struct {
 
 func send() {
 	for {
-		s := <-hub
+		s := <-emailHub
 		for i, _ := range s.emailList {
 			e := &email.Email{
 				To:      []string{s.emailList[i]},

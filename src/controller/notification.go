@@ -1,36 +1,12 @@
 package controller
 
 import (
-	"encoding/json"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"ngb/model"
 	"ngb/util"
-	"time"
 )
-
-var switchType = map[int]string{
-	model.TypeMessage:   "message",
-	model.TypeComment:   "comment",
-	model.TypeMentioned: "mentioned",
-	model.TypeNewPost:   "new_post",
-}
-
-func publicToMQ(n *Notification) error {
-	n.Time = time.Now()
-	nBytes, err := json.Marshal(n)
-	if err != nil {
-		return err
-	}
-
-	err = util.Public(nBytes, switchType[n.Type])
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 func GetNewNotification(c echo.Context) error {
 	tx := model.BeginTx()

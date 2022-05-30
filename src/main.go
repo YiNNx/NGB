@@ -20,5 +20,4 @@ func main() {
 	router.InitRouters(e)
 
 	log.Logger.Fatal(e.Start(config.C.App.Addr))
-
 }
