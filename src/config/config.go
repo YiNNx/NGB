@@ -22,6 +22,7 @@ type Config struct {
 	Mail          mail          `yaml:"mail"`
 	Elasticsearch elasticsearch `yaml:"elasticsearch"`
 	Rabbitmq      rabbitmq      `yaml:"rabbitmq"`
+	Debug         bool          `yaml:"debug"`
 }
 
 type app struct {

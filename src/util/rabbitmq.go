@@ -14,10 +14,18 @@ var mqURL = "amqp://" + config.C.Rabbitmq.User + ":" + config.C.Rabbitmq.Passwor
 type Notification struct {
 	Time      time.Time
 	Uid       int
+	Email     string
 	Type      int
-	ContentId int //私信为mid,关注人发帖和@为pid,评论为cid
-	Status    int //0未读 1已读
+	ContentId int
+	Status    int
 }
+
+type sendMQ struct {
+	content    []byte
+	routingKey string
+}
+
+var mqChan = make(chan *sendMQ, 100)
 
 var switchType = map[int]string{
 	model.TypeMessage:   "message",
@@ -32,24 +40,23 @@ func PublishToMQ(n *Notification) error {
 	if err != nil {
 		return err
 	}
-	err = publish(nBytes, switchType[n.Type])
-	if err != nil {
-		return err
+	mqChan <- &sendMQ{
+		content:    nBytes,
+		routingKey: switchType[n.Type],
 	}
-
 	return nil
 }
 
-func publish(content []byte, routingKey string) error {
+func publish() {
 	conn, err := amqp.Dial(mqURL)
 	if err != nil {
-		return err
+		log.Logger.Error(err)
 	}
 	defer conn.Close()
 
 	ch, err := conn.Channel()
 	if err != nil {
-		return err
+		log.Logger.Error(err)
 	}
 	defer ch.Close()
 
@@ -63,21 +70,23 @@ func publish(content []byte, routingKey string) error {
 		nil,                            // arguments
 	)
 	if err != nil {
-		return err
+		log.Logger.Error(err)
 	}
 
-	err = ch.Publish(
-		config.C.Rabbitmq.ExchangeName, // exchange
-		routingKey,                     // routing key
-		false,                          // mandatory
-		false,                          // immediate
-		amqp.Publishing{
-			ContentType: "application/json",
-			Body:        content,
-		})
-	log.Logger.Debug(content)
-	if err != nil {
-		return err
+	for {
+		send := <-mqChan
+		err = ch.Publish(
+			config.C.Rabbitmq.ExchangeName, // exchange
+			send.routingKey,                // routing key
+			false,                          // mandatory
+			false,                          // immediate
+			amqp.Publishing{
+				ContentType: "application/json",
+				Body:        send.content,
+			})
+		if err != nil {
+			log.Logger.Error(err)
+		}
 	}
-	return nil
+
 }

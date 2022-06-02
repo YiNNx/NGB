@@ -8,8 +8,9 @@ var pool *email.Pool
 var hub = newHub()
 
 func init() {
-	//log.InitLog()
-	go hub.run()
 	initEs()
 	initEmail()
+
+	go hub.run()
+	go publish()
 }

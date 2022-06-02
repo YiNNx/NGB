@@ -25,7 +25,10 @@ func getLogger() *logrus.Logger {
 
 	logger.SetReportCaller(true)
 	logger.SetFormatter(formatter())
-	logger.SetLevel(logrus.DebugLevel)
+	logger.SetLevel(logrus.InfoLevel)
+	if config.C.Debug == true {
+		logger.SetLevel(logrus.DebugLevel)
+	}
 
 	baseLogPath := path.Join(config.C.Log.Path, config.C.Log.File)
 	writer, err := rotatelogs.New(
