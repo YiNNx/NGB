@@ -1,5 +1,5 @@
 app:
-  addr: ":8080"
+  addr: ":8088"
 
 postgresql:
   user: "postgres"

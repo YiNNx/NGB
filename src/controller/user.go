@@ -1,16 +1,18 @@
 package controller
 
 import (
-	"github.com/golang-jwt/jwt"
+	"encoding/json"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	myware "ngb/middleware"
 	"ngb/model"
 	"ngb/util"
 	"ngb/util/bcrypt"
 	"strconv"
 )
 
-func SignUP(c echo.Context) error {
+func SignUp(c echo.Context) error {
 	tx := model.BeginTx()
 	defer tx.Close()
 
@@ -38,11 +40,7 @@ func SignUP(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 	}
 
-	res := &responseUserToken{
-		Uid:   u.Uid,
-		Token: util.GenerateToken(u.Uid, u.Role),
-	}
-	return util.SuccessRespond(c, http.StatusOK, res)
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
 func LogIn(c echo.Context) error {
@@ -58,12 +56,42 @@ func LogIn(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 	}
 
-	response := &responseUserToken{
-		Uid:   u.Uid,
-		Token: util.GenerateToken(u.Uid, u.Role),
+	cookie := new(http.Cookie)
+	cookie.Name = "session_id"
+	sessionId := uuid.New()
+	cookie.Value = sessionId.String()
+	c.SetCookie(cookie)
+
+	session := &myware.Session{
+		Id:   u.Uid,
+		Role: false,
+	}
+	s, err := json.Marshal(session)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	err = model.RedisSet(sessionId.String(), s, 0)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, response)
+	response := &responseUser{
+		Uid: u.Uid,
+	}
+
+	return util.SuccessResponse(c, http.StatusOK, response)
+}
+
+func LogOut(c echo.Context) error {
+	cookie, err := c.Cookie("session_id")
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	err = model.RedisDelete(cookie.Value)
+	if err != nil {
+		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
 func GetUserProfile(c echo.Context) error {
@@ -134,14 +162,14 @@ func GetUserProfile(c echo.Context) error {
 		Collections: collections,
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, res)
+	return util.SuccessResponse(c, http.StatusOK, res)
 }
 
 func GetUserAccount(c echo.Context) error {
 	tx := model.BeginTx()
 	defer tx.Close()
 
-	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	uid := c.(*myware.SessionContext).Uid
 
 	u := &model.User{Uid: uid}
 	err := model.GetByPK(u)
@@ -160,14 +188,14 @@ func GetUserAccount(c echo.Context) error {
 		Intro:    u.Intro,
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, res)
+	return util.SuccessResponse(c, http.StatusOK, res)
 }
 
 func ChangeUserInfo(c echo.Context) error {
 	tx := model.BeginTx()
 	defer tx.Close()
 
-	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	uid := c.(*myware.SessionContext).Uid
 
 	rec := new(userAccount)
 	if err := c.Bind(rec); err != nil {
@@ -193,14 +221,14 @@ func ChangeUserInfo(c echo.Context) error {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
-	return util.SuccessRespond(c, http.StatusOK, nil)
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
 func ChangeUserPwd(c echo.Context) error {
 	tx := model.BeginTx()
 	defer tx.Close()
 
-	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	uid := c.(*myware.SessionContext).Uid
 	u := &model.User{Uid: uid}
 	err := model.GetByPK(u)
 	if err != nil {
@@ -238,7 +266,7 @@ func ChangeUserPwd(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, nil)
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
 func FollowUser(c echo.Context) error {
@@ -250,7 +278,7 @@ func FollowUser(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	follower := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	follower := c.(*myware.SessionContext).Uid
 
 	rec := new(receiveNewStatus)
 	if err := c.Bind(rec); err != nil {
@@ -272,7 +300,7 @@ func FollowUser(c echo.Context) error {
 		}
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, nil)
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
 func GetAllUsers(c echo.Context) error {
@@ -287,7 +315,7 @@ func GetAllUsers(c echo.Context) error {
 	}
 
 	usersInfo := NewUserInfos(users)
-	return util.SuccessRespond(c, http.StatusOK, usersInfo)
+	return util.SuccessResponse(c, http.StatusOK, usersInfo)
 }
 
 func DeleteUser(c echo.Context) error {
@@ -308,7 +336,7 @@ func DeleteUser(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, nil)
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
 func GetAdmins(c echo.Context) error {
@@ -334,5 +362,5 @@ func GetAdmins(c echo.Context) error {
 		res[i].Bid = boards[i].Bid
 		res[i].Intro = boards[i].Intro
 	}
-	return util.SuccessRespond(c, http.StatusOK, res)
+	return util.SuccessResponse(c, http.StatusOK, res)
 }

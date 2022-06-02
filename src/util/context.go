@@ -22,7 +22,7 @@ func ErrorResponse(c echo.Context, code int, msg string) error {
 		})
 }
 
-func SuccessRespond(c echo.Context, code int, data interface{}) error {
+func SuccessResponse(c echo.Context, code int, data interface{}) error {
 	return c.JSON(
 		code,
 		Response{

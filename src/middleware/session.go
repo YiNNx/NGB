@@ -1,8 +1,8 @@
 package middleware
 
 import (
+	"encoding/json"
 	"errors"
-	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"ngb/model"
@@ -10,9 +10,42 @@ import (
 	"strconv"
 )
 
+type SessionContext struct {
+	echo.Context
+	Uid  int
+	Role bool
+}
+
+func HandleSession(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		cookie, err := c.Cookie("session_id")
+		if err != nil {
+			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+		}
+		if cookie == nil {
+			return util.ErrorResponse(c, http.StatusUnauthorized, "haven't logged in yet")
+		}
+		s, err := model.RedisGet(cookie.Value)
+		if err != nil {
+			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+		}
+		if s == nil {
+			return util.ErrorResponse(c, http.StatusUnauthorized, "authorization out of date")
+		}
+		session := &Session{}
+		err = json.Unmarshal([]byte(s.(string)), session)
+		cc := &SessionContext{
+			Context: c,
+			Uid:     session.Id,
+			Role:    session.Role,
+		}
+		return next(cc)
+	}
+}
+
 func VerifySuperAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		role := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Role
+		role := c.(*SessionContext).Role
 		if !role {
 			err := errors.New("no permission")
 			return util.ErrorResponse(c, http.StatusForbidden, err.Error())
@@ -23,8 +56,8 @@ func VerifySuperAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 
 func VerifyAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		role := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Role
-		uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+		role := c.(*SessionContext).Role
+		uid := c.(*SessionContext).Uid
 
 		if role {
 			return next(c)
@@ -64,4 +97,9 @@ func VerifyAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		return next(c)
 	}
+}
+
+type Session struct {
+	Id   int  `json:"id"`
+	Role bool `json:"role"`
 }

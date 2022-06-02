@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	myware "ngb/middleware"
 	"ngb/model"
 	"ngb/util"
 )
@@ -17,7 +17,7 @@ func GetNewNotification(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	uid := c.(*myware.SessionContext).Uid
 
 	noti, err := model.GetNotificationsByUid(uid, limit, offset)
 	if err != nil {
@@ -79,7 +79,7 @@ func GetNewNotification(c echo.Context) error {
 		}
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, res)
+	return util.SuccessResponse(c, http.StatusOK, res)
 }
 
 func GetNotification(c echo.Context) error {
@@ -90,7 +90,7 @@ func GetNotification(c echo.Context) error {
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
-	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	uid := c.(*myware.SessionContext).Uid
 
 	noti, err := model.GetNotificationsByUid(uid, limit, offset)
 	if err != nil {
@@ -151,5 +151,5 @@ func GetNotification(c echo.Context) error {
 		}
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, res)
+	return util.SuccessResponse(c, http.StatusOK, res)
 }

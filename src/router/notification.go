@@ -2,14 +2,13 @@ package router
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"ngb/controller"
-	"ngb/util"
+	myware "ngb/middleware"
 )
 
 func initNotificationRouter(e *echo.Echo) {
 	g := e.Group("/notification")
 
-	g.GET("", controller.GetNotification, middleware.JWTWithConfig(util.Conf))
-	g.GET("/new", controller.GetNewNotification, middleware.JWTWithConfig(util.Conf))
+	g.GET("", controller.GetNotification, myware.HandleSession)
+	g.GET("/new", controller.GetNewNotification, myware.HandleSession)
 }

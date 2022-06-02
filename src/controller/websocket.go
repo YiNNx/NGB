@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	myware "ngb/middleware"
@@ -17,7 +16,7 @@ func Chat(c echo.Context) error {
 		log.Logger.Error(err)
 		return err
 	}
-	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	uid := c.(*myware.SessionContext).Uid
 	ws := c.(*myware.WsContext).Conn
 
 	readClient := util.GetClient(uid, with, ws)
@@ -41,7 +40,7 @@ func SendMessage(c echo.Context) error {
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
-	sender := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	sender := c.(*myware.SessionContext).Uid
 	rec := new(receiveMessage)
 	if err := c.Bind(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -69,5 +68,5 @@ func SendMessage(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, m)
+	return util.SuccessResponse(c, http.StatusOK, m)
 }

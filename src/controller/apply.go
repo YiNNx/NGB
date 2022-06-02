@@ -2,9 +2,9 @@ package controller
 
 import (
 	"fmt"
-	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	myware "ngb/middleware"
 	"ngb/model"
 	"ngb/util"
 	"strconv"
@@ -14,7 +14,7 @@ func SetBoardApply(c echo.Context) error {
 	tx := model.BeginTx()
 	defer tx.Close()
 
-	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	uid := c.(*myware.SessionContext).Uid
 
 	rec := new(receiveBoardApply)
 	if err := c.Bind(rec); err != nil {
@@ -35,14 +35,14 @@ func SetBoardApply(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, nil)
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
 func SetAdminApply(c echo.Context) error {
 	tx := model.BeginTx()
 	defer tx.Close()
 
-	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	uid := c.(*myware.SessionContext).Uid
 
 	rec := new(receiveAdminApply)
 	if err := c.Bind(rec); err != nil {
@@ -63,7 +63,7 @@ func SetAdminApply(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, nil)
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
 func GetBoardApply(c echo.Context) error {
@@ -91,7 +91,7 @@ func GetBoardApply(c echo.Context) error {
 			Status:    ap[i].Status,
 		})
 	}
-	return util.SuccessRespond(c, http.StatusOK, applies)
+	return util.SuccessResponse(c, http.StatusOK, applies)
 }
 
 func GetAdminApply(c echo.Context) error {
@@ -126,7 +126,7 @@ func GetAdminApply(c echo.Context) error {
 			Status:    ap[i].Status,
 		})
 	}
-	return util.SuccessRespond(c, http.StatusOK, applies)
+	return util.SuccessResponse(c, http.StatusOK, applies)
 }
 
 func PassApply(c echo.Context) error {
@@ -164,7 +164,7 @@ func PassApply(c echo.Context) error {
 			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
-		return util.SuccessRespond(c, http.StatusOK, nil)
+		return util.SuccessResponse(c, http.StatusOK, nil)
 	} else {
 		apply.Status = 1
 		err := model.UpdateApplyStatus(apply)
@@ -183,7 +183,7 @@ func PassApply(c echo.Context) error {
 			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
-		return util.SuccessRespond(c, http.StatusOK, nil)
+		return util.SuccessResponse(c, http.StatusOK, nil)
 	} else {
 
 		err := model.InsertManageShip(apply.Bid, apply.Uid)
@@ -191,6 +191,6 @@ func PassApply(c echo.Context) error {
 			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
-		return util.SuccessRespond(c, http.StatusOK, nil)
+		return util.SuccessResponse(c, http.StatusOK, nil)
 	}
 }

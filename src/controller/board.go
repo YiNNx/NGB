@@ -19,7 +19,7 @@ func GetAllBoards(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 	res := NewBoardOutlines(boards)
-	return util.SuccessRespond(c, http.StatusOK, res)
+	return util.SuccessResponse(c, http.StatusOK, res)
 }
 
 func GetBoard(c echo.Context) error {
@@ -56,7 +56,7 @@ func GetBoard(c echo.Context) error {
 		Intro:  b.Intro,
 		Posts:  posts,
 	}
-	return util.SuccessRespond(c, http.StatusOK, res)
+	return util.SuccessResponse(c, http.StatusOK, res)
 }
 
 func SetBoard(c echo.Context) error {
@@ -76,7 +76,7 @@ func SetBoard(c echo.Context) error {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
-	return util.SuccessRespond(c, http.StatusOK, b)
+	return util.SuccessResponse(c, http.StatusOK, b)
 }
 
 func UpdateBoard(c echo.Context) error {
@@ -105,7 +105,7 @@ func UpdateBoard(c echo.Context) error {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
-	return util.SuccessRespond(c, http.StatusOK, nil)
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
 func DeleteBoard(c echo.Context) error {
@@ -121,5 +121,5 @@ func DeleteBoard(c echo.Context) error {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
-	return util.SuccessRespond(c, http.StatusOK, nil)
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }

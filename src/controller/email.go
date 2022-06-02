@@ -18,5 +18,5 @@ func SendEmail(c echo.Context) error {
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
-	return util.SuccessRespond(c, http.StatusOK, res)
+	return util.SuccessResponse(c, http.StatusOK, res)
 }

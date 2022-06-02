@@ -2,9 +2,9 @@ package controller
 
 import (
 	"errors"
-	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	myware "ngb/middleware"
 	"ngb/model"
 	"ngb/util"
 	"ngb/util/log"
@@ -23,7 +23,7 @@ func NewPost(c echo.Context) error {
 	if err := validate.Struct(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
-	author := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	author := c.(*myware.SessionContext).Uid
 	bid, err := strconv.Atoi(c.Param("bid"))
 	if err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -78,7 +78,7 @@ func NewPost(c echo.Context) error {
 		Pid:  p.Pid,
 		Time: p.Time,
 	}
-	return util.SuccessRespond(c, http.StatusOK, res)
+	return util.SuccessResponse(c, http.StatusOK, res)
 }
 
 // GetUsersMentioned 匹配在贴文中被提及的用户
@@ -120,7 +120,7 @@ func GetAllPosts(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, res)
+	return util.SuccessResponse(c, http.StatusOK, res)
 }
 
 func GetPost(c echo.Context) error {
@@ -188,7 +188,7 @@ func GetPost(c echo.Context) error {
 		CommentsCount: commentsCount,
 		Comments:      comments,
 	}
-	return util.SuccessRespond(c, http.StatusOK, res)
+	return util.SuccessResponse(c, http.StatusOK, res)
 }
 
 func GetPostsByTag(c echo.Context) error {
@@ -217,7 +217,7 @@ func GetPostsByTag(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, res)
+	return util.SuccessResponse(c, http.StatusOK, res)
 }
 
 func SearchPost(c echo.Context) error {
@@ -245,7 +245,7 @@ func SearchPost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, res)
+	return util.SuccessResponse(c, http.StatusOK, res)
 }
 
 func CollectPost(c echo.Context) error {
@@ -257,7 +257,7 @@ func CollectPost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	uid := c.(*myware.SessionContext).Uid
 	rec := new(receiveNewStatus)
 	if err := c.Bind(rec); err != nil {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
@@ -284,7 +284,7 @@ func CollectPost(c echo.Context) error {
 		}
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, nil)
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
 func LikePost(c echo.Context) error {
@@ -296,7 +296,7 @@ func LikePost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	uid := c.(*myware.SessionContext).Uid
 
 	rec := new(receiveNewStatus)
 	if err := c.Bind(rec); err != nil {
@@ -315,13 +315,13 @@ func LikePost(c echo.Context) error {
 			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
-		return util.SuccessRespond(c, http.StatusOK, nil)
+		return util.SuccessResponse(c, http.StatusOK, nil)
 	} else {
 		if err := model.DeleteLikeOrCollection(&model.Like{}, pid, uid); err != nil {
 			tx.Rollback()
 			return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		}
-		return util.SuccessRespond(c, http.StatusOK, nil)
+		return util.SuccessResponse(c, http.StatusOK, nil)
 	}
 }
 
@@ -350,7 +350,7 @@ func CommentPost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	uid := c.(*myware.SessionContext).Uid
 	isAuthor := false
 	if p.Author == uid {
 		isAuthor = true
@@ -378,7 +378,7 @@ func CommentPost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, nil)
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
 func SubCommentPost(c echo.Context) error {
@@ -411,7 +411,7 @@ func SubCommentPost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	uid := c.Get("user").(*jwt.Token).Claims.(*util.JwtUserClaims).Id
+	uid := c.(*myware.SessionContext).Uid
 	isAuthor := false
 	if p.Author == uid {
 		isAuthor = true
@@ -432,7 +432,7 @@ func SubCommentPost(c echo.Context) error {
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return util.SuccessRespond(c, http.StatusOK, nil)
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
 func paginate(c echo.Context) (int, int, error) {
@@ -468,5 +468,5 @@ func DeletePost(c echo.Context) error {
 		tx.Rollback()
 		return util.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
-	return util.SuccessRespond(c, http.StatusOK, nil)
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }

@@ -47,7 +47,6 @@ func RedisPush(key string, list []string) error {
 }
 
 func RedisGet(key string) (value interface{}, err error) {
-
 	value, err = redisClient.Get(key).Result()
 	if err == redis.Nil {
 		return nil, nil

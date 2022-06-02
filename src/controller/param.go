@@ -13,9 +13,8 @@ type receiveUserAccount struct {
 	Pwd      string `json:"pwd" validate:"required,max=20,min=6"`
 }
 
-type responseUserToken struct {
-	Uid   int    `json:"uid"`
-	Token string `json:"token"`
+type responseUser struct {
+	Uid int `json:"uid"`
 }
 
 type responseUserProfile struct {

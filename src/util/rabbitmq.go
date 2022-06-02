@@ -51,6 +51,7 @@ func publish() {
 	conn, err := amqp.Dial(mqURL)
 	if err != nil {
 		log.Logger.Error(err)
+		return
 	}
 	defer conn.Close()
 
